@@ -9,30 +9,54 @@
 
 	let { message, type = 'info', id }: Props = $props();
 
-	const colors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-		success: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', icon: '✓' },
-		error: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', icon: '✕' },
-		info: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: 'ℹ' },
-		warning: { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', icon: '⚠' }
+	const styles: Record<string, { border: string; iconColor: string }> = {
+		success: { border: 'border-l-green-600', iconColor: 'text-green-600' },
+		error: { border: 'border-l-red-600', iconColor: 'text-red-600' },
+		info: { border: 'border-l-[var(--color-orpi-navy)]', iconColor: 'text-[var(--color-orpi-navy)]' },
+		warning: { border: 'border-l-yellow-500', iconColor: 'text-yellow-600' }
 	};
 
-	const color = $derived(colors[type]);
+	const style = $derived(styles[type] ?? styles.info);
 </script>
 
 <div
-	class="{color.bg} {color.border} min-w-72 rounded-lg border p-4 shadow-lg !dark:border-gray-700 !dark:bg-gray-800"
+	class="flex min-w-72 max-w-sm items-start gap-3 rounded-lg border-l-4 bg-white px-4 py-3 shadow-lg dark:bg-gray-800 {style.border}"
 	role="alert"
-	aria-live="polite"
+	aria-live={type === 'error' ? 'assertive' : 'polite'}
 >
-	<div class="flex items-start gap-3">
-		<span class="{color.text} text-lg font-bold !dark:text-gray-50" aria-hidden="true">{color.icon}</span>
-		<p class="{color.text} flex-1 text-sm !dark:text-gray-50">{message}</p>
-		<button
-			onclick={() => removeToast(id)}
-			class="ml-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-200"
-			aria-label="Fermer la notification"
-		>
-			✕
-		</button>
-	</div>
+	<!-- Icon -->
+	<span class="mt-0.5 shrink-0 {style.iconColor}" aria-hidden="true">
+		{#if type === 'success'}
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+			</svg>
+		{:else if type === 'error'}
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		{:else if type === 'info'}
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="12" r="10" />
+				<path stroke-linecap="round" d="M12 16v-4M12 8h.01" />
+			</svg>
+		{:else}
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86l-8.6 14.86A1 1 0 002.56 20h18.88a1 1 0 00.87-1.28l-8.6-14.86a1 1 0 00-1.74 0z" />
+			</svg>
+		{/if}
+	</span>
+
+	<!-- Message -->
+	<p class="flex-1 text-sm text-gray-800 dark:text-gray-50">{message}</p>
+
+	<!-- Close button -->
+	<button
+		onclick={() => removeToast(id)}
+		class="shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-200"
+		aria-label="Fermer la notification"
+	>
+		<svg class="h-4 w-4" fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+		</svg>
+	</button>
 </div>

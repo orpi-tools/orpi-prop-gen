@@ -99,5 +99,6 @@ export type ToastMessage = {
 	id: string;
 	message: string;
 	type: 'success' | 'error' | 'info' | 'warning';
-	duration?: number; // ms, défaut 3000
+	duration: number; // ms
+	createdAt: number; // Date.now()
 };

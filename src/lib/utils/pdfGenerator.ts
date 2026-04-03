@@ -219,7 +219,7 @@ export async function generatePdf(pageSelection: boolean[]): Promise<void> {
 			}
 		}
 
-		addToast({ message: userMessage, type: 'error', duration: 5000 });
+		addToast({ message: userMessage, type: 'error' });
 		// Do not re-throw — error is already handled and user notified
 	} finally {
 		// Always reset loading state

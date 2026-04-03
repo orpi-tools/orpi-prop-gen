@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orpi PropGen Premium - Guide Utilisateur</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --orpi-red: #e60000;
+    --orpi-navy: #002c51;
+    --orpi-gray: #f5f5f5;
+    --orpi-light: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.7;
+    background: white;
+    font-size: 11pt;
+  }
+
+  /* ── Print styles ─────────────────────────────────────────── */
+  @media print {
+    body { font-size: 10pt; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none !important; }
+    .cover-page { page-break-after: always; }
+    section { page-break-inside: avoid; }
+    .feature-card { page-break-inside: avoid; }
+    @page { margin: 1.5cm 2cm; size: A4; }
+  }
+
+  @media screen {
+    body { max-width: 210mm; margin: 0 auto; padding: 0; background: #e5e7eb; }
+    .page { background: white; padding: 2cm; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  }
+
+  /* ── Cover Page ───────────────────────────────────────────── */
+  .cover-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 900px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-top: 8px solid var(--orpi-red);
+    border-bottom: 4px solid var(--orpi-navy);
+  }
+  .cover-logo { width: 180px; margin-bottom: 48px; }
+  .cover-title {
+    font-size: 36pt;
+    font-weight: 900;
+    color: var(--orpi-navy);
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .cover-subtitle {
+    font-size: 16pt;
+    font-weight: 400;
+    color: var(--orpi-red);
+    margin-bottom: 48px;
+  }
+  .cover-tagline {
+    font-size: 11pt;
+    color: var(--text-secondary);
+    max-width: 400px;
+    line-height: 1.6;
+  }
+  .cover-version {
+    position: absolute;
+    bottom: 32px;
+    font-size: 9pt;
+    color: var(--text-secondary);
+  }
+
+  /* ── Section headings ─────────────────────────────────────── */
+  h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--orpi-navy);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--orpi-red);
+  }
+  h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: var(--orpi-navy);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  p { margin-bottom: 12px; }
+  ul, ol { margin-bottom: 12px; padding-left: 24px; }
+  li { margin-bottom: 4px; }
+
+  /* ── TOC ───────────────────────────────────────────────────── */
+  .toc {
+    list-style: none;
+    padding: 0;
+    counter-reset: toc-counter;
+  }
+  .toc li {
+    counter-increment: toc-counter;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .toc li::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    font-size: 14pt;
+    font-weight: 800;
+    color: var(--orpi-red);
+    min-width: 32px;
+  }
+  .toc-title { font-weight: 600; font-size: 11pt; }
+  .toc-desc { color: var(--text-secondary); font-size: 9pt; margin-left: auto; }
+
+  /* ── Feature cards ────────────────────────────────────────── */
+  .feature-card {
+    background: var(--orpi-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Step indicator ───────────────────────────────────────── */
+  .steps-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 24px 0;
+    justify-content: center;
+  }
+  .step-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14pt;
+    color: white;
+    flex-shrink: 0;
+  }
+  .step-circle.active { background: var(--orpi-red); }
+  .step-circle.inactive { background: #cbd5e1; }
+  .step-label {
+    font-size: 8pt;
+    text-align: center;
+    margin-top: 6px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    max-width: 80px;
+  }
+  .step-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-connector {
+    width: 48px;
+    height: 3px;
+    background: #cbd5e1;
+    flex-shrink: 0;
+  }
+
+  /* ── Screen mockup ────────────────────────────────────────── */
+  .screen-mockup {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .screen-titlebar {
+    background: var(--orpi-navy);
+    color: white;
+    padding: 8px 16px;
+    font-size: 9pt;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .screen-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .screen-dots .r { background: #ef4444; }
+  .screen-dots .y { background: #eab308; }
+  .screen-dots .g { background: #22c55e; }
+  .screen-body {
+    padding: 20px;
+    background: white;
+    min-height: 120px;
+  }
+
+  /* ── UI mockup elements ───────────────────────────────────── */
+  .mock-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: -20px -20px 16px -20px;
+  }
+  .mock-logo {
+    font-weight: 800;
+    color: var(--orpi-red);
+    font-size: 12pt;
+  }
+  .mock-nav { display: flex; gap: 12px; align-items: center; }
+  .mock-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--orpi-navy);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8pt;
+    font-weight: 700;
+  }
+  .mock-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #e2e8f0;
+  }
+  .mock-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 8pt;
+    font-weight: 600;
+    border: none;
+  }
+  .mock-btn.primary { background: var(--orpi-red); color: white; }
+  .mock-btn.secondary { background: var(--orpi-gray); color: var(--text-primary); }
+  .mock-card {
+    background: var(--orpi-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .mock-card-title { font-weight: 600; font-size: 9pt; color: var(--orpi-navy); }
+  .mock-card-meta { font-size: 7pt; color: var(--text-secondary); margin-top: 4px; }
+  .mock-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 7pt;
+    font-weight: 600;
+  }
+  .mock-badge.draft { background: #e2e8f0; color: #64748b; }
+  .mock-badge.done { background: #dcfce7; color: #16a34a; }
+  .mock-split {
+    display: flex;
+    gap: 16px;
+  }
+  .mock-split > div { flex: 1; }
+  .mock-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 8pt;
+    margin-bottom: 8px;
+    background: white;
+    color: var(--text-secondary);
+  }
+  .mock-label {
+    font-size: 7pt;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .mock-stat {
+    text-align: center;
+    padding: 12px;
+  }
+  .mock-stat-value {
+    font-size: 18pt;
+    font-weight: 800;
+    color: var(--orpi-navy);
+  }
+  .mock-stat-label {
+    font-size: 7pt;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .mock-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 60px;
+    padding-top: 8px;
+  }
+  .mock-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    min-width: 10px;
+  }
+  .mock-bar.active { background: var(--orpi-red); }
+  .mock-bar.empty { background: #e2e8f0; }
+  .mock-big-number {
+    background: var(--orpi-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    flex: 1;
+  }
+  .mock-big-number .value {
+    font-size: 14pt;
+    font-weight: 800;
+    color: var(--orpi-red);
+  }
+  .mock-big-number .label {
+    font-size: 7pt;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .mock-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .mock-photo {
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7pt;
+    color: var(--text-secondary);
+  }
+  .mock-preview-page {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 4px;
+    font-size: 6pt;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* ── Info boxes ────────────────────────────────────────────── */
+  .tip-box {
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 10pt;
+  }
+  .tip-box.info {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+  }
+  .tip-box.success {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+  }
+  .tip-box.warning {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+  }
+  .tip-box strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ── Table ─────────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 9.5pt;
+  }
+  th {
+    background: var(--orpi-navy);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:nth-child(even) { background: var(--orpi-light); }
+
+  /* ── Keyboard shortcut ─────────────────────────────────────── */
+  kbd {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 9pt;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 1px 0 #94a3b8;
+  }
+
+  /* ── Highlight number ──────────────────────────────────────── */
+  .highlight-num {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--orpi-red);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    font-weight: 700;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  .workflow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .workflow-step p { margin: 0; }
+
+  /* ── Footer ────────────────────────────────────────────────── */
+  .guide-footer {
+    text-align: center;
+    padding: 32px 0 16px;
+    color: var(--text-secondary);
+    font-size: 8pt;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE DE COUVERTURE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page cover-page">
+  <img class="cover-logo" src="static/logos/orpi-logo.png" onerror="this.style.display='none'" data-old="data:image/png;base64,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" alt="ORPI">
+
+  <div class="cover-title">PropGen Premium</div>
+  <div class="cover-subtitle">Guide Utilisateur</div>
+  <p class="cover-tagline">
+    Generateur de propositions de gestion locative pour le reseau Orpi.
+    Creez des propositions professionnelles en moins de 5 minutes.
+  </p>
+  <p class="cover-version">Version 1.0 &mdash; Avril 2026</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TABLE DES MATIERES
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>Table des matieres</h1>
+  <ol class="toc">
+    <li><span class="toc-title">Introduction</span><span class="toc-desc">Presentation et installation</span></li>
+    <li><span class="toc-title">Premier demarrage</span><span class="toc-desc">Choix de l'agence et creation de profil</span></li>
+    <li><span class="toc-title">Le tableau de bord</span><span class="toc-desc">Vue d'ensemble des propositions</span></li>
+    <li><span class="toc-title">Creer une proposition</span><span class="toc-desc">Saisie du bien, simulation, generation PDF</span></li>
+    <li><span class="toc-title">Le simulateur financier</span><span class="toc-desc">Calcul des revenus nets apres impots</span></li>
+    <li><span class="toc-title">Generation et envoi du PDF</span><span class="toc-desc">Recapitulatif, apercu en temps reel, export</span></li>
+    <li><span class="toc-title">Parametres et gestion</span><span class="toc-desc">Agences, profils, taux par defaut</span></li>
+    <li><span class="toc-title">Fonctionnalites avancees</span><span class="toc-desc">Export/import, mode sombre, statistiques</span></li>
+    <li><span class="toc-title">Questions frequentes</span><span class="toc-desc">Aide et depannage</span></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     1. INTRODUCTION
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>01 &mdash; Introduction</h1>
+
+  <h2>Qu'est-ce que PropGen Premium ?</h2>
+  <p>
+    <strong>Orpi PropGen Premium</strong> est un outil de creation de propositions de gestion locative
+    concu pour les gestionnaires du reseau Orpi. Il remplace les anciens processus Excel par une interface
+    moderne et intuitive qui genere des propositions PDF de 11 pages en quelques minutes.
+  </p>
+
+  <div class="feature-card">
+    <h3>&#9889; Points forts</h3>
+    <ul>
+      <li><strong>Apercu en temps reel</strong> &mdash; Voyez votre proposition se construire au fur et a mesure de la saisie</li>
+      <li><strong>Simulateur fiscal TMI</strong> &mdash; Calculez les revenus nets du proprietaire selon sa tranche d'imposition</li>
+      <li><strong>100% local</strong> &mdash; Aucun serveur, aucun compte requis, vos donnees restent sur votre poste</li>
+      <li><strong>PDF professionnel</strong> &mdash; 11 pages fideles a la charte Orpi</li>
+      <li><strong>Sauvegarde automatique</strong> &mdash; Jamais de perte de donnees</li>
+    </ul>
+  </div>
+
+  <h2>Installation</h2>
+  <p>L'installation ne necessite <strong>aucun droit administrateur</strong> et prend moins d'une minute :</p>
+  <ol>
+    <li>Double-cliquez sur le fichier <strong>OrpiPropGen-Setup-1.0.0.exe</strong></li>
+    <li>Suivez les etapes de l'assistant d'installation (en francais)</li>
+    <li>Cochez <em>"Lancer Orpi PropGen"</em> a la fin pour demarrer immediatement</li>
+  </ol>
+
+  <div class="tip-box info">
+    <strong>&#128161; Prerequis</strong>
+    Le navigateur <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong> doit etre installe
+    sur votre poste. L'application s'ouvre automatiquement dans le navigateur en mode application
+    (sans barre d'adresse).
+  </div>
+
+  <h2>Lancer l'application</h2>
+  <p>
+    Apres l'installation, un raccourci <strong>"Orpi PropGen"</strong> est cree sur votre Bureau
+    et dans le menu Demarrer. Double-cliquez dessus pour lancer l'application.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     2. PREMIER DEMARRAGE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>02 &mdash; Premier demarrage</h1>
+  <p>Lors du premier lancement, un assistant vous guide en 2 etapes :</p>
+
+  <div class="steps-flow">
+    <div class="step-wrapper">
+      <div class="step-circle active">1</div>
+      <div class="step-label">Agence</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-wrapper">
+      <div class="step-circle inactive">2</div>
+      <div class="step-label">Profil</div>
+    </div>
+  </div>
+
+  <h2>Etape 1 : Choix de l'agence</h2>
+  <p>
+    Selectionnez votre agence Orpi parmi les agences preconfigurees.
+    Chaque carte affiche le <strong>logo</strong>, le <strong>nom</strong> et l'<strong>adresse</strong> de l'agence.
+  </p>
+  <div class="screen-mockup">
+    <div class="screen-titlebar">
+      <div class="screen-dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      Orpi PropGen &mdash; Configuration initiale
+    </div>
+    <div class="screen-body" style="text-align:center;">
+      <p style="font-size:12pt; font-weight:700; color:#002c51; margin-bottom:16px;">Choisissez votre agence Orpi</p>
+      <div style="display:flex; gap:12px; justify-content:center;">
+        <div class="mock-card" style="width:180px; text-align:center; cursor:pointer; border:2px solid var(--orpi-red);">
+          <div style="font-size:16pt; margin-bottom:6px; color:var(--orpi-red);">&#127970;</div>
+          <div class="mock-card-title">Orpi Paris Bastille</div>
+          <div class="mock-card-meta">12 Bd Beaumarchais, 75011</div>
+        </div>
+        <div class="mock-card" style="width:180px; text-align:center; cursor:pointer;">
+          <div style="font-size:16pt; margin-bottom:6px;">&#127970;</div>
+          <div class="mock-card-title">Orpi Lyon Confluence</div>
+          <div class="mock-card-meta">8 Rue de la Confluence, 69002</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Etape 2 : Creation du profil gestionnaire</h2>
+  <p>Renseignez vos informations personnelles. Seuls le <strong>prenom</strong> et le <strong>nom</strong> sont obligatoires.</p>
+
+  <table>
+    <tr><th>Champ</th><th>Obligatoire</th><th>Description</th></tr>
+    <tr><td>Prenom</td><td>Oui</td><td>Votre prenom</td></tr>
+    <tr><td>Nom</td><td>Oui</td><td>Votre nom de famille</td></tr>
+    <tr><td>Email</td><td>Non</td><td>Adresse email professionnelle</td></tr>
+    <tr><td>Telephone</td><td>Non</td><td>Numero au format 06 XX XX XX XX</td></tr>
+    <tr><td>Photo</td><td>Non</td><td>Photo de profil (JPEG/PNG, max 5 Mo)</td></tr>
+  </table>
+
+  <div class="tip-box success">
+    <strong>&#9989; C'est fait !</strong>
+    Une fois votre profil cree, vous etes redirige vers le tableau de bord.
+    Si d'autres gestionnaires utilisent le meme poste, ils peuvent creer leur propre profil.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     3. TABLEAU DE BORD
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>03 &mdash; Le tableau de bord</h1>
+  <p>Le tableau de bord est la page d'accueil de PropGen. Il affiche toutes vos propositions et les statistiques de l'agence.</p>
+
+  <div class="screen-mockup">
+    <div class="screen-titlebar">
+      <div class="screen-dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      Tableau de bord
+    </div>
+    <div class="screen-body">
+      <div class="mock-header">
+        <div class="mock-logo">ORPI</div>
+        <div class="mock-nav">
+          <div class="mock-icon"></div>
+          <div class="mock-icon"></div>
+          <div class="mock-avatar">CL</div>
+        </div>
+      </div>
+
+      <div class="mock-split">
+        <!-- Liste -->
+        <div style="flex:1.4;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-weight:700; font-size:10pt; color:var(--orpi-navy);">Mes propositions <span style="color:var(--text-secondary); font-weight:400; font-size:8pt;">(3)</span></span>
+            <span class="mock-btn primary">+ Nouvelle proposition</span>
+          </div>
+          <div class="mock-input">&#128269; Rechercher par nom, adresse ou email...</div>
+
+          <div class="mock-card">
+            <div style="display:flex; justify-content:space-between;">
+              <div class="mock-card-title">12 Rue de Rivoli, 75001 Paris</div>
+              <span class="mock-badge done">Finalisee</span>
+            </div>
+            <div class="mock-card-meta">Dupont &bull; 02/04/2026 &bull; 1 200 &#8364;/mois</div>
+          </div>
+          <div class="mock-card">
+            <div style="display:flex; justify-content:space-between;">
+              <div class="mock-card-title">45 Avenue Jean Jaures, 69007 Lyon</div>
+              <span class="mock-badge draft">Brouillon</span>
+            </div>
+            <div class="mock-card-meta">Martin &bull; 01/04/2026 &bull; 850 &#8364;/mois</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+            <div class="mock-stat"><div class="mock-stat-value">12</div><div class="mock-stat-label">Total</div></div>
+            <div class="mock-stat"><div class="mock-stat-value">3</div><div class="mock-stat-label">Ce mois</div></div>
+            <div class="mock-stat"><div class="mock-stat-value">2</div><div class="mock-stat-label">Finalisees</div></div>
+            <div class="mock-stat"><div class="mock-stat-value" style="color:var(--orpi-red);">67%</div><div class="mock-stat-label">Taux</div></div>
+          </div>
+          <div style="font-size:8pt; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Activite (6 mois)</div>
+          <div class="mock-bar-chart">
+            <div class="mock-bar empty" style="height:15%;"></div>
+            <div class="mock-bar active" style="height:40%;"></div>
+            <div class="mock-bar active" style="height:65%;"></div>
+            <div class="mock-bar active" style="height:30%;"></div>
+            <div class="mock-bar active" style="height:85%;"></div>
+            <div class="mock-bar active" style="height:50%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Actions disponibles</h2>
+  <table>
+    <tr><th>Action</th><th>Description</th></tr>
+    <tr><td><strong>+ Nouvelle proposition</strong></td><td>Cree une proposition vierge et ouvre le formulaire de saisie</td></tr>
+    <tr><td><strong>Rechercher</strong></td><td>Filtrez en temps reel par nom du proprietaire, adresse ou email</td></tr>
+    <tr><td><strong>Filtrer par statut</strong></td><td>Affichez uniquement les brouillons ou les propositions finalisees</td></tr>
+    <tr><td><strong>Dupliquer</strong></td><td>Creez une copie d'une proposition existante (menu <strong>&#8943;</strong>)</td></tr>
+    <tr><td><strong>Supprimer</strong></td><td>Supprimez definitivement une proposition (menu <strong>&#8943;</strong>)</td></tr>
+    <tr><td><strong>Exporter / Importer</strong></td><td>Sauvegardez ou restaurez toutes les propositions au format JSON</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     4. CREER UNE PROPOSITION
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>04 &mdash; Creer une proposition</h1>
+  <p>La creation d'une proposition se fait en <strong>3 etapes</strong> via un formulaire guide. La partie droite de l'ecran affiche un <strong>apercu en temps reel</strong> du PDF final.</p>
+
+  <div class="steps-flow">
+    <div class="step-wrapper">
+      <div class="step-circle active">1</div>
+      <div class="step-label">Le bien</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-wrapper">
+      <div class="step-circle inactive">2</div>
+      <div class="step-label">Simulation</div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-wrapper">
+      <div class="step-circle inactive">3</div>
+      <div class="step-label">Recapitulatif</div>
+    </div>
+  </div>
+
+  <h2>Etape 1 : Informations du bien</h2>
+  <p>Renseignez les informations du proprietaire, l'adresse et les caracteristiques du bien :</p>
+
+  <div class="screen-mockup">
+    <div class="screen-titlebar">
+      <div class="screen-dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      Wizard &mdash; Etape 1 : Le bien
+    </div>
+    <div class="screen-body">
+      <div class="mock-split">
+        <div>
+          <div class="mock-label">Proprietaire</div>
+          <div class="mock-input">Prenom *</div>
+          <div class="mock-input">Nom *</div>
+          <div class="mock-input">Email</div>
+
+          <div class="mock-label" style="margin-top:10px;">Adresse</div>
+          <div class="mock-input">Rue *</div>
+          <div style="display:flex; gap:6px;">
+            <div class="mock-input" style="width:35%;">Code postal *</div>
+            <div class="mock-input" style="flex:1;">Ville *</div>
+          </div>
+
+          <div class="mock-label" style="margin-top:10px;">Caracteristiques</div>
+          <div style="display:flex; gap:6px;">
+            <div class="mock-input">Type *</div>
+            <div class="mock-input">Surface (m&sup2;)</div>
+          </div>
+          <div class="mock-input">Loyer HC mensuel (&#8364;) *</div>
+        </div>
+        <div style="background:#f8fafc; border-radius:8px; padding:10px;">
+          <div style="font-size:7pt; font-weight:600; color:var(--text-secondary); text-align:center; margin-bottom:6px;">APERCU PDF</div>
+          <div class="mock-preview-page">Page 1 &mdash; Couverture</div>
+          <div class="mock-preview-page">Page 2 &mdash; Presentation</div>
+          <div class="mock-preview-page">Page 3 &mdash; Le bien</div>
+          <div class="mock-preview-page">Page 4 &mdash; L'agence</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Photos du bien</h3>
+  <p>
+    Ajoutez jusqu'a <strong>5 photos</strong> par glisser-deposer ou en cliquant sur la zone dediee.
+    Les photos sont automatiquement compressees. Vous pouvez les <strong>reordonner</strong> en les faisant glisser
+    et les <strong>supprimer</strong> avec le bouton &times;.
+  </p>
+
+  <h3>Description</h3>
+  <p>
+    Un champ de texte libre permet d'ajouter une description detaillee.
+    Les informations saisies s'affichent instantanement dans l'apercu PDF.
+  </p>
+
+  <div class="tip-box info">
+    <strong>&#128161; Sauvegarde automatique</strong>
+    Toutes vos saisies sont enregistrees automatiquement apres 1 seconde d'inactivite.
+    Vous pouvez fermer l'application et reprendre plus tard sans rien perdre.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     5. SIMULATEUR FINANCIER
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>05 &mdash; Le simulateur financier</h1>
+  <p>L'etape 2 calcule en temps reel les revenus locatifs du proprietaire selon differents parametres.</p>
+
+  <div class="screen-mockup">
+    <div class="screen-titlebar">
+      <div class="screen-dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      Wizard &mdash; Etape 2 : Simulation financiere
+    </div>
+    <div class="screen-body">
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <div class="mock-big-number"><div class="value">14 400 &#8364;</div><div class="label">Loyer brut annuel</div></div>
+        <div class="mock-big-number"><div class="value">1 123 &#8364;</div><div class="label">Honoraires TTC</div></div>
+        <div class="mock-big-number"><div class="value">432 &#8364;</div><div class="label">Prime GLI</div></div>
+        <div class="mock-big-number"><div class="value" style="color:#16a34a;">8 870 &#8364;</div><div class="label">Revenu net (TMI)</div></div>
+      </div>
+
+      <div class="mock-split">
+        <div>
+          <div class="mock-label">Parametres financiers</div>
+          <div class="mock-input">Loyer HC : 1 200 &#8364;/mois</div>
+          <div class="mock-input">Charges : 50 &#8364;/mois</div>
+          <div style="display:flex; gap:6px;">
+            <div class="mock-input">Taux gestion : 7,8%</div>
+            <div class="mock-input">Taux GLI : 3,0%</div>
+          </div>
+        </div>
+        <div>
+          <div class="mock-label">Tranche marginale d'imposition (TMI)</div>
+          <div style="display:flex; gap:4px; margin-top:4px;">
+            <span class="mock-btn secondary">0%</span>
+            <span class="mock-btn secondary">11%</span>
+            <span class="mock-btn primary">30%</span>
+            <span class="mock-btn secondary">41%</span>
+            <span class="mock-btn secondary">45%</span>
+          </div>
+          <div style="font-size:7pt; color:var(--text-secondary); margin-top:8px;">
+            Le proprietaire selectionne sa tranche sans reveler son revenu exact.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Comment utiliser le simulateur en rendez-vous</h2>
+  <div class="workflow-step"><span class="highlight-num">1</span><p>Le loyer HC est pre-rempli depuis l'etape 1</p></div>
+  <div class="workflow-step"><span class="highlight-num">2</span><p>Ajustez les charges mensuelles si necessaire</p></div>
+  <div class="workflow-step"><span class="highlight-num">3</span><p>Les taux de gestion et GLI sont pre-remplis depuis les parametres de l'agence</p></div>
+  <div class="workflow-step"><span class="highlight-num">4</span><p>Demandez au proprietaire de selectionner sa <strong>tranche TMI</strong> &mdash; il n'a pas besoin de reveler son revenu</p></div>
+  <div class="workflow-step"><span class="highlight-num">5</span><p>Les <strong>4 chiffres cles</strong> s'actualisent en temps reel avec une animation</p></div>
+
+  <div class="tip-box warning">
+    <strong>&#9888;&#65039; Astuce en rendez-vous</strong>
+    Tournez l'ecran vers le proprietaire pour qu'il voie les chiffres evoluer en direct.
+    L'apercu PDF a droite se met a jour simultanement, ce qui demontre le professionnalisme de votre service.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     6. GENERATION PDF
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>06 &mdash; Generation et envoi du PDF</h1>
+
+  <h2>Etape 3 : Recapitulatif</h2>
+  <p>
+    La derniere etape affiche un resume complet de la proposition.
+    Vous pouvez <strong>selectionner les pages</strong> a inclure dans le PDF final :
+  </p>
+
+  <table>
+    <tr><th>Page</th><th>Contenu</th><th>Incluse par defaut</th></tr>
+    <tr><td>1</td><td>Couverture</td><td>Oui</td></tr>
+    <tr><td>2</td><td>Presentation proprietaire</td><td>Oui</td></tr>
+    <tr><td>3</td><td>Caracteristiques du bien</td><td>Oui</td></tr>
+    <tr><td>4</td><td>Photos du bien</td><td>Oui</td></tr>
+    <tr><td>5</td><td>Gestion locative</td><td>Oui</td></tr>
+    <tr><td>6</td><td>Simulation financiere</td><td>Oui</td></tr>
+    <tr><td>7</td><td>Presentation de l'agence</td><td>Oui</td></tr>
+    <tr><td>8</td><td>Garanties (GLI)</td><td>Oui</td></tr>
+    <tr><td>9</td><td>Description detaillee</td><td>Oui</td></tr>
+    <tr><td>10</td><td>Processus de gestion</td><td>Oui</td></tr>
+    <tr><td>11</td><td>Contacts</td><td>Oui</td></tr>
+  </table>
+
+  <h2>Generer la proposition</h2>
+  <div class="workflow-step"><span class="highlight-num">1</span><p>Verifiez le recapitulatif et decochez les pages non souhaitees</p></div>
+  <div class="workflow-step"><span class="highlight-num">2</span><p>Cliquez sur le bouton <strong style="color:white; background:var(--orpi-red); padding:2px 10px; border-radius:4px;">Generer la proposition</strong></p></div>
+  <div class="workflow-step"><span class="highlight-num">3</span><p>Le PDF est telecharge automatiquement</p></div>
+  <div class="workflow-step"><span class="highlight-num">4</span><p>Une animation de confirmation s'affiche avec les options suivantes :</p></div>
+
+  <div class="feature-card">
+    <h3>&#127881; Apres la generation</h3>
+    <ul>
+      <li><strong>Nouvelle proposition</strong> &mdash; Commencer une proposition vierge</li>
+      <li><strong>Retour au tableau de bord</strong> &mdash; Revenir a la liste des propositions</li>
+      <li><strong>Copier l'email du proprietaire</strong> &mdash; Pour coller directement dans votre messagerie</li>
+    </ul>
+    <p style="font-size:9pt; color:var(--text-secondary); margin-bottom:0;">
+      Le statut de la proposition passe automatiquement de <span class="mock-badge draft">Brouillon</span>
+      a <span class="mock-badge done">Finalisee</span>.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     7. PARAMETRES
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>07 &mdash; Parametres et gestion</h1>
+  <p>Accedez aux parametres via l'icone <strong>&#9881;</strong> dans l'en-tete de l'application.</p>
+
+  <h2>Informations de l'agence</h2>
+  <div class="feature-card">
+    <h3>&#127970; Agence</h3>
+    <p>Modifiez les informations de votre agence. Les changements sont <strong>sauvegardes automatiquement</strong> apres 2 secondes.</p>
+    <ul>
+      <li>Nom, adresse, telephone, email de l'agence</li>
+      <li>Photo de la devanture de l'agence (affichee dans le PDF)</li>
+    </ul>
+  </div>
+
+  <h2>Taux par defaut</h2>
+  <div class="feature-card">
+    <h3>&#128200; Taux de gestion et GLI</h3>
+    <p>Definissez les taux qui seront <strong>pre-remplis</strong> dans chaque nouveau simulateur financier :</p>
+    <table>
+      <tr><th>Taux</th><th>Valeur par defaut</th><th>Description</th></tr>
+      <tr><td>Taux de gestion</td><td>7,8%</td><td>Honoraires de gestion locative</td></tr>
+      <tr><td>Taux GLI</td><td>3,0%</td><td>Garantie Loyers Impayes</td></tr>
+    </table>
+  </div>
+
+  <h2>Gestion des profils</h2>
+  <div class="feature-card">
+    <h3>&#128100; Profils gestionnaires</h3>
+    <p>Gerez l'equipe de gestionnaires de votre agence :</p>
+    <ul>
+      <li><strong>Ajouter</strong> un nouveau gestionnaire</li>
+      <li><strong>Modifier</strong> les informations d'un gestionnaire existant (nom, email, telephone, photo)</li>
+      <li><strong>Changer de profil actif</strong> en cliquant sur la carte du gestionnaire</li>
+    </ul>
+  </div>
+
+  <div class="tip-box info">
+    <strong>&#128161; Multi-agences</strong>
+    Si vous gerez plusieurs agences, vous pouvez en ajouter depuis les parametres et basculer
+    entre elles. Chaque agence a ses propres profils, taux et propositions.
+  </div>
+
+  <h2>Changer de profil rapidement</h2>
+  <p>
+    Sans passer par les parametres, cliquez sur votre <strong>avatar</strong> en haut a droite de l'ecran
+    pour voir la liste des gestionnaires et changer de profil instantanement.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     8. FONCTIONNALITES AVANCEES
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>08 &mdash; Fonctionnalites avancees</h1>
+
+  <h2>Export et import des propositions</h2>
+  <div class="feature-card">
+    <h3>&#128190; Sauvegarde et restauration</h3>
+    <p>Depuis le tableau de bord, utilisez les boutons <strong>Exporter</strong> et <strong>Importer</strong> :</p>
+    <ul>
+      <li><strong>Exporter</strong> &mdash; Telecharge un fichier JSON contenant toutes les propositions de l'agence (photos incluses). Ideal pour une sauvegarde ou un transfert vers un autre poste.</li>
+      <li><strong>Importer</strong> &mdash; Chargez un fichier JSON exporte precedemment pour restaurer les propositions.</li>
+    </ul>
+  </div>
+
+  <h2>Mode sombre</h2>
+  <div class="feature-card">
+    <h3>&#127769; Dark Mode</h3>
+    <p>
+      Cliquez sur l'icone <strong>&#9789;/&#9788;</strong> dans l'en-tete pour basculer entre le mode clair et le mode sombre.
+      Le choix est sauvegarde automatiquement.
+    </p>
+  </div>
+
+  <h2>Statistiques de l'agence</h2>
+  <div class="feature-card">
+    <h3>&#128202; Indicateurs cles</h3>
+    <p>Le panneau droit du tableau de bord affiche en permanence :</p>
+    <ul>
+      <li><strong>Nombre total</strong> de propositions creees</li>
+      <li><strong>Propositions ce mois-ci</strong> (nouvelles et finalisees)</li>
+      <li><strong>Taux de finalisation</strong> &mdash; pourcentage de propositions menees a terme</li>
+      <li><strong>Graphique d'activite</strong> sur 6 mois &mdash; visualisez les tendances</li>
+    </ul>
+  </div>
+
+  <h2>Raccourcis et astuces</h2>
+  <table>
+    <tr><th>Astuce</th><th>Description</th></tr>
+    <tr><td>Navigation par etapes</td><td>Cliquez directement sur les numeros 1, 2, 3 dans la barre de progression pour naviguer</td></tr>
+    <tr><td>Duplication rapide</td><td>Dupliquez une proposition existante pour gagner du temps sur des biens similaires</td></tr>
+    <tr><td>Glisser-deposer</td><td>Reordonnez les photos du bien en les faisant glisser</td></tr>
+    <tr><td>Apercu continu</td><td>Le panneau PDF a droite se met a jour en continu &mdash; pas besoin de rafraichir</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     9. FAQ
+     ═══════════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1>09 &mdash; Questions frequentes</h1>
+
+  <h2>Ou sont stockees mes donnees ?</h2>
+  <p>
+    Toutes les donnees sont stockees <strong>localement dans votre navigateur</strong> (IndexedDB).
+    Aucune information n'est envoyee sur Internet. Vos donnees restent sur votre poste de travail.
+  </p>
+
+  <h2>Que se passe-t-il si je ferme l'application en cours de saisie ?</h2>
+  <p>
+    Rien n'est perdu. La sauvegarde automatique enregistre vos modifications en continu.
+    A la reouverture, vous retrouverez votre proposition exactement ou vous l'avez laissee.
+  </p>
+
+  <h2>Comment transferer mes propositions sur un autre ordinateur ?</h2>
+  <p>
+    Utilisez la fonction <strong>Exporter</strong> sur le premier poste pour telecharger un fichier JSON,
+    puis <strong>Importer</strong> ce fichier sur le second poste.
+  </p>
+
+  <h2>Puis-je modifier une proposition finalisee ?</h2>
+  <p>
+    Oui. Cliquez sur une proposition finalisee dans le tableau de bord pour la rouvrir dans le formulaire.
+    Vous pouvez modifier les informations et regenerer le PDF.
+  </p>
+
+  <h2>Le navigateur affiche une erreur de securite</h2>
+  <p>
+    L'application fonctionne en mode fichier local. Chrome ou Edge peut afficher un avertissement.
+    Le script de lancement configure automatiquement les permissions necessaires. Si le probleme persiste,
+    relancez l'application depuis le raccourci Bureau.
+  </p>
+
+  <h2>Comment mettre a jour l'application ?</h2>
+  <p>
+    Votre responsable informatique vous fournira une nouvelle version de l'installateur.
+    Lancez-le pour mettre a jour &mdash; vos donnees existantes sont conservees.
+  </p>
+
+  <div class="tip-box info">
+    <strong>&#128161; Besoin d'aide ?</strong>
+    Contactez votre responsable d'agence ou l'administrateur informatique en charge de l'outil.
+  </div>
+
+  <div class="guide-footer">
+    <strong>Orpi PropGen Premium</strong> &mdash; Guide Utilisateur v1.0<br>
+    &copy; 2026 Orpi. Document interne &mdash; Ne pas diffuser en dehors du reseau.
+  </div>
+</div>
+
+</body>
+</html>

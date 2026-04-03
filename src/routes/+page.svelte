@@ -80,7 +80,7 @@
 			if (!agencyId) {
 				console.warn('[Dashboard] No active agency');
 				propositions = [];
-				addToast({ message: 'Aucune agence sélectionnée', type: 'error' });
+				addToast({ message: 'Aucune agence sélectionnée', type: 'warning' });
 				return;
 			}
 			propositions = all.filter((p) => p.agencyId === agencyId);
@@ -201,7 +201,7 @@
 		try {
 			const agencyId = $agencyStore?.id?.trim();
 		if (!agencyId) {
-			addToast({ message: 'Aucune agence sélectionnée', type: 'error' });
+			addToast({ message: 'Aucune agence sélectionnée', type: 'warning' });
 			return;
 		}
 		const count = await exportImportHelpers.exportAll(agencyId);
@@ -267,7 +267,7 @@
 						<button
 							type="button"
 							onclick={handleNewProposal}
-							class="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-95"
+							class="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-95 dark:hover:brightness-110"
 							style="background-color: var(--color-orpi-red, #e60000)"
 							data-testid="new-proposal-btn"
 						>
@@ -299,7 +299,7 @@
 					{/if}
 				{:else}
 					{#each filteredPropositions as proposition, i (proposition.id)}
-						<div in:fly={{ y: 20, duration: 400, delay: Math.min(i * 100, 600) }}>
+						<div in:fly={{ y: 8, duration: 200, delay: Math.min(i * 50, 500) }}>
 							<PropositionCard
 								{proposition}
 								selected={selectedId === proposition.id}

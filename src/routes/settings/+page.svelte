@@ -3,9 +3,17 @@
 	import { agencyHelpers } from '$lib/db/helpers/agencyHelpers';
 	import { gestionnaireHelpers } from '$lib/db/helpers/gestionnaireHelpers';
 	import Avatar from '$lib/components/shared/Avatar.svelte';
+	import ProfileCreator from '$lib/components/onboarding/ProfileCreator.svelte';
+	import ProfileEditor from '$lib/components/settings/ProfileEditor.svelte';
+	import AgencyCreator from '$lib/components/settings/AgencyCreator.svelte';
 	import type { Agency, Gestionnaire } from '$lib/types';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
+
+	let showAddProfile = $state(false);
+	let showAddAgency = $state(false);
+	let editingGestionnaireId = $state<string | null>(null);
+	let allAgencies = $state<Agency[]>([]);
 
 	let gestionnaires = $state<Gestionnaire[]>([]);
 	let isLoadingGestionnaires = $state(true);
@@ -56,6 +64,15 @@
 		const agency = $agencyStore;
 		if (!agency) return;
 
+		if (!file.type.startsWith('image/')) {
+			addToast({ message: 'Veuillez sélectionner un fichier image', type: 'error' });
+			return;
+		}
+		if (file.size > 5 * 1024 * 1024) {
+			addToast({ message: 'La photo ne doit pas dépasser 5 Mo', type: 'error' });
+			return;
+		}
+
 		const blob = new Blob([await file.arrayBuffer()], { type: file.type });
 		await agencyHelpers.update(agency.id, { photoAgence: blob });
 		agencyStore.set({ ...agency, photoAgence: blob });
@@ -79,6 +96,12 @@
 		logoFilename = agency.logoFilename;
 
 		try {
+			allAgencies = await agencyHelpers.getAll();
+		} catch (error) {
+			console.error('[Settings] Failed to load agencies:', error);
+		}
+
+		try {
 			gestionnaires = await gestionnaireHelpers.getByAgency(agency.id);
 		} catch (error) {
 			console.error('[Settings] Failed to load gestionnaires:', error);
@@ -86,6 +109,64 @@
 		} finally {
 			isLoadingGestionnaires = false;
 		}
+	});
+
+	async function handleAgencyCreated(agency: Agency) {
+		if (saveTimeoutId) { clearTimeout(saveTimeoutId); saveTimeoutId = null; }
+		allAgencies = [...allAgencies, agency];
+		showAddAgency = false;
+		// Switch to new agency — clear active user (new agency has no gestionnaires)
+		agencyStore.set(agency);
+		userStore.set(null);
+		name = agency.name;
+		address = agency.address;
+		phone = agency.phone;
+		email = agency.email;
+		tauxGestion = agency.tauxGestion;
+		tauxGLI = agency.tauxGLI;
+		logoFilename = agency.logoFilename;
+		logoUrl = null;
+		photoAgenceUrl = null;
+		gestionnaires = [];
+		isLoadingGestionnaires = false;
+		addToast({ message: `Agence "${agency.name}" créée`, type: 'success' });
+	}
+
+	async function switchAgency(agency: Agency) {
+		if (saveTimeoutId) { clearTimeout(saveTimeoutId); saveTimeoutId = null; }
+		showAddProfile = false;
+		showAddAgency = false;
+		editingGestionnaireId = null;
+		agencyStore.set(agency);
+		userStore.set(null);
+		name = agency.name;
+		address = agency.address;
+		phone = agency.phone;
+		email = agency.email;
+		tauxGestion = agency.tauxGestion;
+		tauxGLI = agency.tauxGLI;
+		logoFilename = agency.logoFilename;
+
+		try {
+			gestionnaires = await gestionnaireHelpers.getByAgency(agency.id);
+		} catch (error) {
+			console.error('[Settings] Failed to load gestionnaires:', error);
+			gestionnaires = [];
+		}
+		addToast({ message: `Agence "${agency.name}" sélectionnée`, type: 'success' });
+	}
+
+	function handleGestionnaireUpdated(updated: Gestionnaire) {
+		gestionnaires = gestionnaires.map((g) => (g.id === updated.id ? updated : g));
+		// Update userStore if editing the active user
+		if ($userStore?.id === updated.id) {
+			userStore.set(updated);
+		}
+		editingGestionnaireId = null;
+	}
+
+	onDestroy(() => {
+		if (saveTimeoutId) { clearTimeout(saveTimeoutId); saveTimeoutId = null; }
 	});
 
 	function scheduleAutoSave() {
@@ -103,12 +184,15 @@
 				address: address.trim(),
 				phone: phone.trim(),
 				email: email.trim(),
-				tauxGestion,
-				tauxGLI
+				tauxGestion: Number.isFinite(tauxGestion) ? tauxGestion : 7.8,
+				tauxGLI: Number.isFinite(tauxGLI) ? tauxGLI : 3.0
 			};
 			await agencyHelpers.update(agency.id, changes);
-			agencyStore.set({ ...agency, ...changes });
-			addToast({ message: 'Paramètres sauvegardés', type: 'success' });
+			// Guard: don't overwrite store if user switched agency during save
+			if ($agencyStore?.id === agency.id) {
+				agencyStore.set({ ...agency, ...changes });
+				addToast({ message: 'Paramètres sauvegardés', type: 'success' });
+			}
 		} catch (error) {
 			console.error('[Settings] Save failed:', error);
 			addToast({ message: 'Erreur lors de la sauvegarde', type: 'error' });
@@ -130,12 +214,85 @@
 			</svg>
 			Retour
 		</a>
-		<h1 class="text-2xl font-bold text-gray-900 dark:text-gray-50">Paramètres Agence</h1>
+		<h1 class="text-2xl font-bold text-gray-900 dark:text-gray-50">Paramètres</h1>
 	</div>
+
+	<!-- Section: Agences -->
+	{#if allAgencies.length > 1}
+		<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Agences</h2>
+				{#if !showAddAgency}
+					<button
+						onclick={() => (showAddAgency = true)}
+						class="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+					>
+						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+						</svg>
+						Ajouter une agence
+					</button>
+				{/if}
+			</div>
+
+			{#if showAddAgency}
+				<div class="mb-4">
+					<AgencyCreator onCreated={handleAgencyCreated} onCancel={() => (showAddAgency = false)} />
+				</div>
+			{/if}
+
+			<div class="space-y-2">
+				{#each allAgencies as agency (agency.id)}
+					<button
+						onclick={() => switchAgency(agency)}
+						class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors {agency.id === $agencyStore?.id
+							? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
+							: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
+					>
+						<img
+							src={agency.logoFilename ? `/logos/${agency.logoFilename}` : '/logos/orpi-logo.png'}
+							alt="Logo {agency.name}"
+							class="h-8 w-8 rounded object-contain"
+						/>
+						<div class="min-w-0 flex-1">
+							<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+								{agency.name}
+								{#if agency.id === $agencyStore?.id}
+									<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(active)</span>
+								{/if}
+							</p>
+							{#if agency.address}
+								<p class="truncate text-xs text-gray-500 dark:text-gray-400">{agency.address}</p>
+							{/if}
+						</div>
+					</button>
+				{/each}
+			</div>
+		</section>
+	{/if}
 
 	<!-- Section: Informations agence -->
 	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-		<h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-50">Informations agence</h2>
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Informations agence</h2>
+			{#if allAgencies.length <= 1 && !showAddAgency}
+				<button
+					onclick={() => (showAddAgency = true)}
+					class="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+				>
+					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+					</svg>
+					Ajouter une agence
+				</button>
+			{/if}
+		</div>
+
+		{#if showAddAgency && allAgencies.length <= 1}
+			<div class="mb-6">
+				<AgencyCreator onCreated={handleAgencyCreated} onCancel={() => (showAddAgency = false)} />
+			</div>
+		{/if}
 
 		<!-- Logo display -->
 		<div class="mb-6 flex items-center gap-4">
@@ -152,11 +309,11 @@
 					class="h-16 w-16 rounded-lg border border-gray-200 object-contain"
 				/>
 			{:else}
-				<div
-					class="flex h-16 w-16 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700"
-				>
-					<span class="text-xs text-gray-400 dark:text-gray-500">Logo</span>
-				</div>
+				<img
+					src="/logos/orpi-logo.png"
+					alt="Logo Orpi"
+					class="h-16 w-16 rounded-lg border border-gray-200 object-contain"
+				/>
 			{/if}
 			<div>
 				<p class="text-sm font-medium text-gray-700 dark:text-gray-300">{name || 'Agence'}</p>
@@ -301,43 +458,92 @@
 	</section>
 
 	<!-- Section: Profils gestionnaires -->
-	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-		<h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-50">Profils gestionnaires</h2>
+	<section id="gestionnaires" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Profils gestionnaires</h2>
+			{#if !showAddProfile}
+				<button
+					onclick={() => (showAddProfile = true)}
+					class="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+				>
+					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+					</svg>
+					Ajouter
+				</button>
+			{/if}
+		</div>
+
+		{#if showAddProfile && $agencyStore?.id}
+			<div class="mb-4">
+				<ProfileCreator
+					agencyId={$agencyStore.id}
+					onCreated={(g) => {
+						gestionnaires = [...gestionnaires, g];
+						showAddProfile = false;
+						addToast({ message: `Profil de ${g.firstName} créé`, type: 'success' });
+					}}
+				/>
+				<button
+					onclick={() => (showAddProfile = false)}
+					class="mt-2 w-full text-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+				>
+					Annuler
+				</button>
+			</div>
+		{/if}
 
 		{#if isLoadingGestionnaires}
 			<div class="flex items-center justify-center py-8">
 				<span class="text-sm text-gray-500">Chargement des profils...</span>
 			</div>
-		{:else if gestionnaires.length === 0}
+		{:else if gestionnaires.length === 0 && !showAddProfile}
 			<p class="py-4 text-center text-sm text-gray-500">Aucun gestionnaire enregistré.</p>
 		{:else}
 			<div class="space-y-2">
 				{#each gestionnaires as gestionnaire (gestionnaire.id)}
-					<div
-						class="flex items-center gap-4 rounded-lg px-4 py-3 transition-colors {gestionnaire.id ===
-						$userStore?.id
-							? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
-							: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
-					>
-						<Avatar {gestionnaire} size="sm" />
-						<div class="min-w-0 flex-1">
-							<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
-								{gestionnaire.firstName}
-								{gestionnaire.lastName}
-								{#if gestionnaire.id === $userStore?.id}
-									<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(actif)</span>
-								{/if}
-							</p>
-							<div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-								{#if gestionnaire.email}
-									<span>{gestionnaire.email}</span>
-								{/if}
-								{#if gestionnaire.phone}
-									<span>{gestionnaire.phone}</span>
-								{/if}
+					{#if editingGestionnaireId === gestionnaire.id}
+						<ProfileEditor
+							{gestionnaire}
+							onUpdated={handleGestionnaireUpdated}
+							onCancel={() => (editingGestionnaireId = null)}
+						/>
+					{:else}
+						<div
+							class="flex items-center gap-4 rounded-lg px-4 py-3 transition-colors {gestionnaire.id ===
+							$userStore?.id
+								? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
+								: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
+						>
+							<Avatar {gestionnaire} size="sm" />
+							<div class="min-w-0 flex-1">
+								<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+									{gestionnaire.firstName}
+									{gestionnaire.lastName}
+									{#if gestionnaire.id === $userStore?.id}
+										<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(actif)</span>
+									{/if}
+								</p>
+								<div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
+									{#if gestionnaire.email}
+										<span>{gestionnaire.email}</span>
+									{/if}
+									{#if gestionnaire.phone}
+										<span>{gestionnaire.phone}</span>
+									{/if}
+								</div>
 							</div>
+							<button
+								onclick={() => (editingGestionnaireId = gestionnaire.id)}
+								class="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+								title="Modifier le profil"
+							>
+								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+								</svg>
+							</button>
 						</div>
-					</div>
+					{/if}
 				{/each}
 			</div>
 		{/if}

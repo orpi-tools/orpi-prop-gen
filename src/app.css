@@ -47,6 +47,7 @@
 	--color-orpi-navy: #002c51;
 	--color-orpi-white: #ffffff;
 	--color-orpi-gray: #f5f5f5;
+	--color-orpi-navy-bg: #002c51;
 
 	/* Typographie */
 	--font-min-ui: 14px;
@@ -54,8 +55,7 @@
 }
 
 /*
- * Tokens dark mode — overrides neutres uniquement
- * Les couleurs Orpi brand (rouge, navy) restent identiques
+ * Tokens dark mode
  */
 .dark {
 	--color-bg: #111827;
@@ -63,6 +63,11 @@
 	--color-text: #f9fafb;
 	--color-text-secondary: #9ca3af;
 	--color-border: #374151;
+
+	/* Navy text becomes lighter in dark mode for readability */
+	--color-orpi-navy: #93c5fd;
+	/* Navy bg stays dark so white text keeps contrast */
+	--color-orpi-navy-bg: #002c51;
 }
 
 /* Police globale */
@@ -76,4 +81,34 @@ input,
 textarea,
 select {
 	font-size: var(--font-min-form);
+}
+
+/* Respect user motion preferences (WCAG 2.1) */
+@media (prefers-reduced-motion: reduce) {
+	* {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* View Transitions API — route navigation fade */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+:global(::view-transition-old(root)) {
+	animation: 200ms ease-out both fade-out;
+}
+
+:global(::view-transition-new(root)) {
+	animation: 200ms ease-out both fade-in;
 }

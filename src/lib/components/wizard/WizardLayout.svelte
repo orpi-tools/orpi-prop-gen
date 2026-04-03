@@ -51,7 +51,7 @@
 				console.error('[WizardLayout] Auto-save failed:', error);
 				isSaving = false;
 				try {
-					addToast({ message: ERROR_MESSAGE, type: 'error', duration: 5000 });
+					addToast({ message: ERROR_MESSAGE, type: 'error' });
 				} catch (toastError) {
 					console.error('[WizardLayout] Toast failed:', toastError);
 				}

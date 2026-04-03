@@ -253,7 +253,7 @@
 			class="w-full rounded-xl px-8 py-4 text-lg font-bold text-white transition-all
 				{isPdfGenerating
 				? 'cursor-not-allowed bg-gray-400'
-				: 'bg-[var(--color-orpi-red)] hover:brightness-95'}"
+				: 'bg-[var(--color-orpi-red)] hover:brightness-95 dark:hover:brightness-110'}"
 		>
 			{isPdfGenerating ? 'Génération en cours...' : 'Générer la proposition'}
 		</button>

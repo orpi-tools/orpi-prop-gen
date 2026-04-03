@@ -106,7 +106,7 @@
 					type="button"
 					onclick={copyEmail}
 					class="w-full rounded-xl px-6 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
-					style="background-color: var(--color-orpi-navy, #002c51)"
+					style="background-color: var(--color-orpi-navy-bg, #002c51)"
 					aria-label="Copier l'email du propriétaire"
 					data-testid="copy-email-btn"
 				>

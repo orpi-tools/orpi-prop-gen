@@ -130,10 +130,11 @@ describe('uiStore', () => {
 		expect(typeof state.toasts[0].id).toBe('string');
 	});
 
-	it('addToast auto-dismisses after duration', async () => {
+	it('addToast auto-dismisses after duration (+ 200ms grace period for animation)', async () => {
 		addToast({ message: 'Auto-dismiss', type: 'info', duration: 50 });
 		expect(get(uiStore).toasts).toHaveLength(1);
-		await new Promise((r) => setTimeout(r, 100));
+		// Wait for duration (50ms) + grace period (200ms) + buffer
+		await new Promise((r) => setTimeout(r, 300));
 		expect(get(uiStore).toasts).toHaveLength(0);
 	});
 
@@ -142,10 +143,12 @@ describe('uiStore', () => {
 		expect(get(uiStore).toasts[0].type).toBe('info');
 	});
 
-	it('removeToast removes toast by id', () => {
+	it('removeToast removes toast by id (with grace period for animation)', async () => {
 		addToast({ message: 'To remove', type: 'warning', duration: 60000 });
 		const id = get(uiStore).toasts[0].id;
 		removeToast(id);
+		// Grace period: 200ms for out:fly animation to complete
+		await new Promise(resolve => setTimeout(resolve, 250));
 		expect(get(uiStore).toasts).toHaveLength(0);
 	});
 
@@ -156,5 +159,28 @@ describe('uiStore', () => {
 		addToast({ message: 'T2', type: 'error', duration: 60000 });
 		addToast({ message: 'T3', type: 'info', duration: 60000 });
 		expect(get(uiStore).toasts).toHaveLength(3);
+	});
+
+	it('addToast uses DEFAULT_DURATIONS for success (3000ms)', () => {
+		addToast({ message: 'Success test', type: 'success' });
+		expect(get(uiStore).toasts[0].duration).toBe(3000);
+	});
+
+	it('addToast uses DEFAULT_DURATIONS for error (5000ms)', () => {
+		addToast({ message: 'Error test', type: 'error' });
+		expect(get(uiStore).toasts[0].duration).toBe(5000);
+	});
+
+	it('addToast respects custom duration over default', () => {
+		addToast({ message: 'Custom', type: 'error', duration: 2000 });
+		expect(get(uiStore).toasts[0].duration).toBe(2000);
+	});
+
+	it('addToast adds createdAt timestamp', () => {
+		const before = Date.now();
+		addToast({ message: 'Timestamp test', type: 'info' });
+		const toast = get(uiStore).toasts[0];
+		expect(toast.createdAt).toBeGreaterThanOrEqual(before);
+		expect(toast.createdAt).toBeLessThanOrEqual(Date.now());
 	});
 });

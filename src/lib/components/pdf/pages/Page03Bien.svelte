@@ -75,22 +75,22 @@
 	</div>
 
 	<!-- R2 : SURFACE -->
-	<div class="overlay" style="left: 126px; top: 1253px; width: 280px; height: 120px;">
+	<div class="overlay overlay-small" style="left: 126px; top: 1253px; width: 280px; height: 120px;">
 		<span class="text-value">{bien.surface || '--'} m²</span>
 	</div>
 
 	<!-- R3 : PIECES -->
-	<div class="overlay" style="left: 432px; top: 1253px; width: 285px; height: 120px;">
+	<div class="overlay overlay-small" style="left: 432px; top: 1253px; width: 285px; height: 120px;">
 		<span class="text-value">{bien.nbPieces ? `${bien.nbPieces} pièce${bien.nbPieces > 1 ? 's' : ''}` : '--'}</span>
 	</div>
 
 	<!-- R4 : ETAGE -->
-	<div class="overlay" style="left: 739px; top: 1253px; width: 283px; height: 120px;">
+	<div class="overlay overlay-small" style="left: 739px; top: 1253px; width: 283px; height: 120px;">
 		<span class="text-value">{bien.etage != null ? (bien.etage === 0 ? 'RDC' : `Étage n°${bien.etage}`) : '--'}</span>
 	</div>
 
 	<!-- R5 : TYPE -->
-	<div class="overlay" style="left: 1050px; top: 1253px; width: 281px; height: 120px;">
+	<div class="overlay overlay-small" style="left: 1050px; top: 1253px; width: 281px; height: 120px;">
 		<span class="text-value">{bien.typeLogement || '--'}</span>
 	</div>
 
@@ -155,6 +155,20 @@
 		align-items: center;
 	}
 
+	.overlay-small {
+		display: block;
+		position: absolute;
+		background: #FFFFFF;
+	}
+
+	.overlay-small .text-value {
+		position: absolute;
+		top: 42%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
+	}
+
 	.overlay-col {
 		flex-direction: column;
 		gap: 4px;
@@ -185,6 +199,7 @@
 		font-weight: 700;
 		color: #1a2b5f;
 		text-align: center;
+		line-height: 1;
 	}
 
 	.text-proprietaire {

@@ -82,12 +82,6 @@
 			return;
 		}
 
-		// Validate whitespace-only names
-		if (firstName.trim().length === 0 || lastName.trim().length === 0) {
-			addToast({ message: 'Le prénom et le nom ne peuvent pas être vides', type: 'error' });
-			return;
-		}
-
 		// Validate email format if provided
 		if (!isValidEmail(email)) {
 			addToast({ message: 'Veuillez entrer une adresse email valide', type: 'error' });
@@ -242,8 +236,7 @@
 		<button
 			type="submit"
 			disabled={!firstName.trim() || !lastName.trim() || isLoading}
-			class="mt-2 w-full rounded-lg px-6 py-3 font-semibold text-white transition-all hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-			style="background-color: var(--color-orpi-red)"
+			class="mt-2 w-full rounded-lg bg-[var(--color-orpi-red)] px-6 py-3 font-semibold text-white transition-all hover:brightness-95 dark:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{isLoading ? 'Création en cours…' : 'Créer mon profil'}
 		</button>

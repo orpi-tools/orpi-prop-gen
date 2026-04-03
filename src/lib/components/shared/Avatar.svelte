@@ -46,7 +46,7 @@
 			class="flex items-center justify-center rounded-full font-semibold text-white {sizeClasses[
 				size
 			]}"
-			style="background-color: var(--color-orpi-navy)"
+			style="background-color: var(--color-orpi-navy-bg)"
 		>
 			{gestionnaire.initiales || '?'}
 		</div>

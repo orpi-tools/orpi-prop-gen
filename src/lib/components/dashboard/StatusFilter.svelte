@@ -21,7 +21,7 @@
 			type="button"
 			onclick={() => onChange(option.value)}
 			class="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-			style:background-color={value === option.value ? 'var(--color-orpi-navy, #002c51)' : undefined}
+			style:background-color={value === option.value ? 'var(--color-orpi-navy-bg, #002c51)' : undefined}
 			style:color={value === option.value ? 'white' : undefined}
 			class:bg-gray-100={value !== option.value}
 			class:text-gray-500={value !== option.value}

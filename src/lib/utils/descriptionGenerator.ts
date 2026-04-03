@@ -88,99 +88,54 @@ const locationPhrases = {
 };
 
 const surfacePhrases = [
-	'offre une belle surface de ${surface} m²',
+	'de ${surface} m²',
 	'd\'une surface de ${surface} m²',
-	'développe ${surface} m² de surface habitable',
-	's\'étend sur ${surface} m² bien agencés'
+	'offrant ${surface} m²'
 ];
 
 const roomPhrases: Record<string, string[]> = {
-	'1': ['comprenant 1 pièce principale'],
-	'2': ['comprenant 2 pièces', 'avec ses 2 pièces bien distribuées'],
-	'3': [
-		'comprenant 3 pièces',
-		'avec ses 3 pièces fonctionnelles',
-		'disposant de 3 pièces agréables à vivre'
-	],
-	default: [
-		'comprenant ${n} pièces',
-		'avec ses ${n} pièces bien distribuées',
-		'disposant de ${n} pièces fonctionnelles'
-	]
+	'1': ['de 1 pièce'],
+	'2': ['de 2 pièces'],
+	'3': ['de 3 pièces'],
+	default: ['de ${n} pièces']
 };
 
 const floorPhrases = [
-	'Situé${e} au ${etage}ème étage',
-	'Au ${etage}ème étage de l\'immeuble',
-	'Positionné${e} au ${etage}ème étage'
+	'au ${etageOrd} étage',
+	'situé${e} au ${etageOrd} étage'
 ];
 
 const floorRdcPhrases = [
-	'En rez-de-chaussée',
-	'Situé${e} en rez-de-chaussée',
-	'Au rez-de-chaussée de l\'immeuble'
+	'en rez-de-chaussée',
+	'au rez-de-chaussée'
 ];
 
 const expositionPhrases: Record<string, string[]> = {
-	Sud: [
-		'bénéficiant d\'une exposition plein sud',
-		'avec une belle exposition sud très lumineuse',
-		'baigné${e} de lumière grâce à son exposition sud'
-	],
-	Nord: [
-		'avec une exposition nord',
-		'orienté${e} au nord'
-	],
-	Est: [
-		'bénéficiant d\'une exposition est',
-		'avec une belle luminosité matinale grâce à son orientation est',
-		'orienté${e} est, profitant du soleil du matin'
-	],
-	Ouest: [
-		'bénéficiant d\'une exposition ouest',
-		'avec une belle lumière de fin de journée grâce à son orientation ouest',
-		'orienté${e} ouest'
-	],
-	'Sud-Est': [
-		'bénéficiant d\'une exposition sud-est très agréable',
-		'avec une orientation sud-est idéale',
-		'baigné${e} de lumière grâce à son exposition sud-est'
-	],
-	'Sud-Ouest': [
-		'bénéficiant d\'une exposition sud-ouest privilégiée',
-		'avec une orientation sud-ouest et une belle luminosité',
-		'profitant d\'une exposition sud-ouest très recherchée'
-	],
-	'Nord-Est': [
-		'avec une exposition nord-est',
-		'orienté${e} nord-est'
-	],
-	'Nord-Ouest': [
-		'avec une exposition nord-ouest',
-		'orienté${e} nord-ouest'
-	]
+	Sud: ['exposition sud', 'plein sud'],
+	Nord: ['exposition nord'],
+	Est: ['exposition est'],
+	Ouest: ['exposition ouest'],
+	'Sud-Est': ['exposition sud-est'],
+	'Sud-Ouest': ['exposition sud-ouest'],
+	'Nord-Est': ['exposition nord-est'],
+	'Nord-Ouest': ['exposition nord-ouest']
 };
 
 const equipmentIntros = [
-	'Il bénéficie de',
-	'Parmi ses atouts, on retrouve',
-	'Le bien dispose de',
-	'On apprécie particulièrement',
-	'Il se distingue par'
+	'Il dispose de',
+	'Avec',
+	'Le bien offre'
 ];
 
 const closingPhrases = [
-	'Un bien qui présente de réels atouts pour une mise en gestion locative sereine.',
-	'Ses caractéristiques en font un bien particulièrement attractif sur le marché locatif.',
-	'Un bien de qualité qui saura séduire les locataires les plus exigeants.',
-	'Des prestations de qualité qui garantissent une mise en location rapide et pérenne.',
-	'Un bien qui réunit tous les critères pour une gestion locative performante.'
+	'Un bien idéal pour la gestion locative.',
+	'Idéal pour une mise en location.',
+	'Un bien attractif sur le marché locatif.'
 ];
 
 const rentPhrases = [
-	'Le loyer est estimé à ${loyer} €/mois hors charges',
-	'Avec un loyer de ${loyer} € hors charges mensuelles',
-	'Le loyer proposé s\'élève à ${loyer} €/mois hors charges'
+	'Loyer : ${loyer} €/mois HC',
+	'Loyer proposé : ${loyer} €/mois HC'
 ];
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────
@@ -269,12 +224,13 @@ export function generateDescription(bien: BienData): string {
 		surface,
 		n: nbPieces,
 		loyer: loyerHC,
-		etage: etage ?? 0
+		etage: etage ?? 0,
+		etageOrd: (etage ?? 0) === 1 ? '1er' : `${etage ?? 0}ème`
 	};
 
 	const paragraphs: string[] = [];
 
-	// ── Phrase 1 : Ouverture + surface + localisation ──────────────────────
+	// ── Phrase 1 : Ouverture + surface + pièces + localisation + étage/expo
 
 	const opening = pick(openings[typeLogement] || defaultOpenings);
 	const surfacePhrase = applyVars(pick(surfacePhrases), vars);
@@ -288,32 +244,24 @@ export function generateDescription(bien: BienData): string {
 	const roomPool = roomPhrases[String(nbPieces)] || roomPhrases['default'];
 	const roomPhrase = applyVars(pick(roomPool), vars);
 
-	paragraphs.push(`${opening} ${surfacePhrase}, ${locationPhrase}, ${roomPhrase}.`);
-
-	// ── Phrase 2 : Étage + exposition (si disponibles) ─────────────────────
-
-	const details: string[] = [];
-
+	const extras: string[] = [];
 	if (etage !== undefined && etage !== null) {
-		if (etage === 0) {
-			details.push(applyAccord(pick(floorRdcPhrases), isFeminine));
-		} else {
-			details.push(applyAccord(applyVars(pick(floorPhrases), vars), isFeminine));
-		}
+		extras.push(etage === 0
+			? applyAccord(pick(floorRdcPhrases), isFeminine)
+			: applyAccord(applyVars(pick(floorPhrases), vars), isFeminine));
 	}
-
 	if (exposition && expositionPhrases[exposition]) {
-		details.push(applyAccord(pick(expositionPhrases[exposition]), isFeminine));
+		extras.push(pick(expositionPhrases[exposition]));
 	}
 
-	if (details.length > 0) {
-		paragraphs.push(details.join(', ') + '.');
-	}
+	const extraStr = extras.length > 0 ? `, ${extras.join(', ')}` : '';
+	paragraphs.push(`${opening} ${surfacePhrase}, ${locationPhrase}, ${roomPhrase}${extraStr}.`);
 
 	// ── Phrase 3 : Équipements ─────────────────────────────────────────────
 
 	if (equipements.length > 0) {
-		const { nouns, adjectives } = formatEquipements(equipements);
+		const { nouns: allNouns, adjectives } = formatEquipements(equipements);
+		const nouns = allNouns.slice(0, 4);
 
 		// Filter out "lumineux" if already mentioned in opening or exposition
 		const openingLower = opening.toLowerCase();

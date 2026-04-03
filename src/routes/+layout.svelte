@@ -1,13 +1,12 @@
 <script lang="ts">
 	import '../app.css';
-	import { fly } from 'svelte/transition';
 	import { uiStore, toggleDarkMode, initDarkMode } from '$lib/stores/uiStore';
 	import { agencyStore } from '$lib/stores/agencyStore';
 	import { userStore } from '$lib/stores/userStore';
 	import { agencyHelpers } from '$lib/db/helpers/agencyHelpers';
 	import { gestionnaireHelpers } from '$lib/db/helpers/gestionnaireHelpers';
 	import { onMount } from 'svelte';
-	import Toast from '$lib/components/shared/Toast.svelte';
+	import ToastContainer from '$lib/components/shared/ToastContainer.svelte';
 	import ProfileSwitcher from '$lib/components/shared/ProfileSwitcher.svelte';
 	import { goto, onNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -15,14 +14,30 @@
 	let { children } = $props();
 	let mounted = $state(false);
 	let initError = $state<Error | null>(null);
+	let transitioning = $state(false);
 
 	onNavigate((navigation) => {
+		if (transitioning) return;
 		if (!document.startViewTransition) return;
+		transitioning = true;
 		return new Promise((resolve) => {
-			document.startViewTransition(async () => {
+			const timeout = setTimeout(() => {
+				transitioning = false;
 				resolve();
-				await navigation.complete;
-			});
+			}, 500); // Fallback timeout
+			try {
+				document.startViewTransition(async () => {
+					clearTimeout(timeout);
+					resolve();
+					await navigation.complete;
+					transitioning = false;
+				});
+			} catch (error) {
+				clearTimeout(timeout);
+				console.error('[Layout] View Transition error:', error);
+				transitioning = false;
+				resolve();
+			}
 		});
 	});
 
@@ -63,12 +78,8 @@
 		class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800"
 	>
 		<div class="flex items-center gap-2">
-			<a
-				href="/"
-				class="text-2xl font-extrabold tracking-tight transition-opacity hover:opacity-80"
-				style="color: var(--color-orpi-red, #e2001a)"
-			>
-				ORPI
+			<a href="/" class="transition-opacity hover:opacity-80">
+				<img src="/logos/orpi-logo.png" alt="Orpi" class="h-8 w-auto" />
 			</a>
 		</div>
 
@@ -99,6 +110,30 @@
 				</svg>
 			{/if}
 		</button>
+
+		<!-- Help icon — guide utilisateur -->
+		<a
+			href="/guide-utilisateur.html"
+			target="_blank"
+			class="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+			title="Guide utilisateur"
+			aria-label="Ouvrir le guide utilisateur"
+		>
+			<svg
+				class="h-6 w-6 text-gray-600 dark:text-gray-400"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+				aria-hidden="true"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+		</a>
 
 		<!-- Gear icon — settings -->
 		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -132,6 +167,8 @@
 	</header>
 
 	<!-- Main content -->
+	<!-- TODO (P10): Add focus management during View Transitions to prevent focus from moving to animated elements.
+			 Consider using aria-hidden + inert or focus-visible patterns. Track in accessibility backlog. -->
 	<main class="flex-1 overflow-auto bg-gray-50 p-6 dark:bg-gray-900">
 		{#if initError}
 			<div class="mx-auto max-w-2xl rounded-lg border border-red-300 bg-red-50 p-6 dark:border-red-900 dark:bg-red-900">
@@ -152,39 +189,12 @@
 	</main>
 
 	<!-- Toast container -->
-	<div class="pointer-events-none fixed right-0 bottom-0 z-50 space-y-2 p-4">
-		{#each $uiStore.toasts as toast (toast.id)}
-			<div
-				in:fly={{ x: 64, duration: 200 }}
-				out:fly={{ x: 64, duration: 150 }}
-				class="pointer-events-auto"
-			>
-				<Toast message={toast.message} type={toast.type} id={toast.id} />
-			</div>
-		{/each}
-	</div>
+	<ToastContainer />
 </div>
 
 <style>
 	:global(body) {
 		margin: 0;
 		padding: 0;
-	}
-
-	@keyframes fade-in {
-		from {
-			opacity: 0;
-		}
-	}
-	@keyframes fade-out {
-		to {
-			opacity: 0;
-		}
-	}
-	:global(::view-transition-old(root)) {
-		animation: 200ms ease-out both fade-out;
-	}
-	:global(::view-transition-new(root)) {
-		animation: 200ms ease-out both fade-in;
 	}
 </style>

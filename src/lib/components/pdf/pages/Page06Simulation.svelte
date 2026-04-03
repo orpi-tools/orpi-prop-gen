@@ -99,17 +99,17 @@
 	</div>
 
 	<!-- R2 : HONORAIRES D'ENTREMISE -->
-	<div class="overlay" style="left: 1070px; top: 1126px; width: 150px; height: 73px;">
+	<div class="overlay overlay-small" style="left: 1070px; top: 1126px; width: 150px; height: 73px;">
 		<span class="text-honoraire">90 € TTC</span>
 	</div>
 
 	<!-- R3 : HONORAIRES VISITES / DOSSIER / BAIL -->
-	<div class="overlay" style="left: 1000px; top: 1219px; width: 125px; height: 73px;">
+	<div class="overlay overlay-small" style="left: 1000px; top: 1219px; width: 125px; height: 73px;">
 		<span class="text-honoraire">{sim.honorairesLocation ? `${fmt(sim.honorairesLocation)} €` : '--'}</span>
 	</div>
 
 	<!-- R4 : HONORAIRE ÉTAT DES LIEUX ENTRÉE -->
-	<div class="overlay" style="left: 641px; top: 1297px; width: 130px; height: 65px;">
+	<div class="overlay overlay-small" style="left: 641px; top: 1297px; width: 130px; height: 65px;">
 		<span class="text-honoraire">{sim.honorairesEtatLieux ? `${fmt(sim.honorairesEtatLieux)} €` : '--'}</span>
 	</div>
 </div>
@@ -218,6 +218,21 @@
 	.total-value {
 		font-size: 32px;
 		font-weight: 700;
+	}
+
+	/* ─── Petits rectangles (fix html2canvas) ─── */
+	.overlay-small {
+		display: block;
+		position: absolute;
+		background: #FFFFFF;
+	}
+
+	.overlay-small .text-honoraire {
+		position: absolute;
+		top: 42%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
 	}
 
 	/* ─── Honoraires ─── */

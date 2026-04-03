@@ -4,6 +4,7 @@
 	import { userStore } from '$lib/stores/userStore';
 	import { addToast } from '$lib/stores/uiStore';
 	import { gestionnaireHelpers } from '$lib/db/helpers/gestionnaireHelpers';
+	import { goto } from '$app/navigation';
 	import type { Gestionnaire } from '$lib/types';
 
 	let {
@@ -18,28 +19,34 @@
 	let isLoading = $state(false);
 	let isSwitching = $state<string | null>(null);
 	let gestionnaires = $state<Gestionnaire[]>([]);
-	let menuRequestId = 0;
+	let abortController: AbortController | null = null;
 
 	async function toggleMenu() {
 		if (isOpen) {
 			isOpen = false;
 			return;
 		}
-		const requestId = ++menuRequestId;
+		if (isSwitching || isLoading) return;
+
+		// Cancel any previous fetch request
+		abortController?.abort();
+		abortController = new AbortController();
+
 		isLoading = true;
 		isOpen = true;
 		try {
 			gestionnaires = await gestionnaireHelpers.getByAgency(agencyId);
 		} catch (error) {
+			// Ignore abort errors (expected when user rapidly opens/closes)
+			if (error instanceof DOMException && error.name === 'AbortError') {
+				return;
+			}
 			console.error('[ProfileSwitcher] Failed to load profiles:', error);
 			addToast({ message: 'Erreur chargement des profils', type: 'error' });
 			isOpen = false;
 			return;
 		} finally {
 			isLoading = false;
-		}
-		if (requestId !== menuRequestId) {
-			return;
 		}
 	}
 
@@ -154,6 +161,18 @@
 					</button>
 				{/each}
 			{/if}
+				<!-- Séparateur + Ajouter un profil -->
+				<div class="mt-1 border-t border-gray-200 pt-1 dark:border-gray-700">
+					<button
+						onclick={() => { isOpen = false; goto('/settings#gestionnaires'); }}
+						class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
+					>
+						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+						</svg>
+						Ajouter un profil
+					</button>
+				</div>
 		</div>
 	{/if}
 </div>
