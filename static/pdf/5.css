@@ -1,0 +1,42 @@
+/* Rectangle 1 : PHOTO BIEN 1 */
+
+position: absolute;
+width: 480px;
+height: 317px;
+left: 124px;
+top: 683px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 2 : PHOTO BIEN 2*/
+
+position: absolute;
+width: 467px;
+height: 317px;
+left: 795px;
+top: 683px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 3 PHOTO BIEN 3 */
+
+position: absolute;
+width: 480px;
+height: 317px;
+left: 124px;
+top: 1085px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 4 : DESCRIPTION BIEN */
+
+position: absolute;
+width: 468px;
+height: 318px;
+left: 794px;
+top: 1087px;
+
+background: #FFFFFF;

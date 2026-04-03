@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+/* Dark mode class-based (Tailwind v4) — active les prefixes dark: */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Police Inter — assets locaux (zéro appel réseau Google Fonts)
+ */
+@font-face {
+	font-family: 'Inter';
+	src: url('/fonts/Inter-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: url('/fonts/Inter-Medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: url('/fonts/Inter-SemiBold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: url('/fonts/Inter-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/*
+ * Tokens CSS Orpi — charte officielle
+ * Utilisation : var(--color-orpi-red), text-[var(--color-orpi-red)]
+ */
+:root {
+	--color-orpi-red: #e60000;
+	--color-orpi-navy: #002c51;
+	--color-orpi-white: #ffffff;
+	--color-orpi-gray: #f5f5f5;
+
+	/* Typographie */
+	--font-min-ui: 14px;
+	--font-min-form: 16px;
+}
+
+/*
+ * Tokens dark mode — overrides neutres uniquement
+ * Les couleurs Orpi brand (rouge, navy) restent identiques
+ */
+.dark {
+	--color-bg: #111827;
+	--color-bg-card: #1f2937;
+	--color-text: #f9fafb;
+	--color-text-secondary: #9ca3af;
+	--color-border: #374151;
+}
+
+/* Police globale */
+html,
+body {
+	font-family: 'Inter', system-ui, sans-serif;
+	font-size: var(--font-min-ui);
+}
+
+input,
+textarea,
+select {
+	font-size: var(--font-min-form);
+}

@@ -1,0 +1,22 @@
+[
+	{
+		"id": "agence-orpi-paris-bastille",
+		"name": "Orpi Paris Bastille",
+		"address": "12 Boulevard Beaumarchais, 75011 Paris",
+		"phone": "01 43 57 00 00",
+		"email": "paris.bastille@orpi.fr",
+		"logoFilename": "orpi-paris-bastille.png",
+		"tauxGestion": 7.8,
+		"tauxGLI": 3.0
+	},
+	{
+		"id": "agence-orpi-lyon-confluence",
+		"name": "Orpi Lyon Confluence",
+		"address": "8 Rue de la Confluence, 69002 Lyon",
+		"phone": "04 72 00 00 00",
+		"email": "lyon.confluence@orpi.fr",
+		"logoFilename": "orpi-lyon-confluence.png",
+		"tauxGestion": 7.8,
+		"tauxGLI": 3.0
+	}
+]

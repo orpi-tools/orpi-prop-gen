@@ -1,0 +1,55 @@
+/* Rectangle 1 : PHOTO */
+position: absolute;
+width: 1249px;
+height: 752px;
+left: 88px;
+top: 450px;
+background: #FFFFFF;
+
+/* Rectangle 2 : SURFACE */
+position: absolute;
+width: 280px;
+height: 120px;
+left: 126px;
+top: 1253px;
+background: #FFFFFF;
+
+/* Rectangle 3 : PIECES */
+position: absolute;
+width: 285px;
+height: 120px;
+left: 432px;
+top: 1253px;
+background: #FFFFFF;
+
+/* Rectangle 4 : ETAGE */
+position: absolute;
+width: 283px;
+height: 120px;
+left: 739px;
+top: 1253px;
+background: #FFFFFF;
+
+/* Rectangle 5 : TYPE */
+position: absolute;
+width: 281px;
+height: 120px;
+left: 1050px;
+top: 1253px;
+background: #FFFFFF;
+
+/* Rectangle 6 : PROPRIETAIRE */
+position: absolute;
+width: 460px;
+height: 257px;
+left: 178px;
+top: 1426px;
+background: #FFFFFF;
+
+/* Rectangle 7 : LOYER PROPOSE + Date de l'etude */
+position: absolute;
+width: 449px;
+height: 257px;
+left: 797px;
+top: 1426px;
+background: #FFFFFF;

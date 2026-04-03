@@ -1,0 +1,42 @@
+/* Rectangle 1 : REVENUS MENSUELS */
+
+position: absolute;
+width: 1084px;
+height: 565px;
+left: 166px;
+top: 342px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 2 HONORAIRES D'ENTREPRISE */
+
+position: absolute;
+width: 150px;
+height: 73px;
+left: 1100px;
+top: 1126px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 3 : HONORAIRES DE VISITES, DOSSIER, BAIL */
+
+position: absolute;
+width: 150px;
+height: 73px;
+left: 1015px;
+top: 1219px;
+
+background: #FFFFFF;
+
+
+/* Rectangle 4 : HONORAIRE ETAT DES LIEUX ENTREE */
+
+position: absolute;
+width: 150px;
+height: 65px;
+left: 651px;
+top: 1287px;
+
+background: #FFFFFF;
