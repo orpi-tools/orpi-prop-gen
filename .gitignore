@@ -8,6 +8,12 @@ node_modules
 /.svelte-kit
 /build
 
+# electron-builder output — binaires publiés sur GitHub Releases
+/dist
+
+# Outils internes
+/.claude
+
 # OS
 .DS_Store
 Thumbs.db

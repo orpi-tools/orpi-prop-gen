@@ -18,41 +18,38 @@
 	let profileStep = $state<'select' | 'create'>('create');
 
 	onMount(async () => {
-		try {
-			const agencies = await agencyHelpers.getAll();
-			if (agencies.length > 0) {
-				// Set store first, then navigate (prevent race condition)
-				agencyStore.set(agencies[0]);
-				try {
-					// eslint-disable-next-line svelte/no-navigation-without-resolve
-					await goto('/');
-				} catch (navError) {
-					console.error('[Onboarding] Navigation failed:', navError);
-					navigationError = navError instanceof Error ? navError.message : 'Navigation failed';
-				}
-				return;
+		// L'onboarding commence TOUJOURS par le choix de l'agence (étape 'agency').
+		// Si un utilisateur arrive ici alors qu'il a déjà un profil actif, on le
+		// renvoie au dashboard.
+		if ($agencyStore && $userStore) {
+			try {
+				// eslint-disable-next-line svelte/no-navigation-without-resolve
+				await goto('/');
+			} catch (navError) {
+				console.error('[Onboarding] Navigation failed:', navError);
+				navigationError = navError instanceof Error ? navError.message : 'Navigation failed';
 			}
-		} catch (error) {
-			console.error('[Onboarding] Failed to load agencies:', error);
-			addToast({ message: 'Erreur lors du chargement des agences', type: 'error' });
+			return;
 		}
+		// Sinon on reste sur l'étape 'agency' (valeur initiale).
 	});
 
 	async function handleAgencySelect(agencyData: Agency) {
 		isLoading = true;
 		try {
-			const saved = await agencyHelpers.create(agencyData);
-			if (!saved || !saved.id) {
-				throw new Error('Invalid agency response from server');
+			// Les agences sont seedées au démarrage — on récupère celle qui correspond
+			let saved = await agencyHelpers.getById(agencyData.id);
+			if (!saved) {
+				// Sécurité : si jamais elle n'existe pas en DB (premier lancement avant seed), on la crée
+				saved = await agencyHelpers.create(agencyData);
 			}
 			agencyStore.set(saved);
 
-			// Charger les profils existants pour cette agence
 			try {
 				existingProfiles = await gestionnaireHelpers.getByAgency(saved.id);
 			} catch (profileError) {
 				console.error('[Onboarding] Failed to load profiles:', profileError);
-				existingProfiles = []; // Dégradé gracieux — continuer sans profils
+				existingProfiles = [];
 			}
 
 			profileStep = existingProfiles.length > 0 ? 'select' : 'create';

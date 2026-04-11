@@ -11,7 +11,7 @@
 		currentUser,
 		agencyId
 	}: {
-		currentUser: Gestionnaire;
+		currentUser: Gestionnaire | null;
 		agencyId: string;
 	} = $props();
 
@@ -21,37 +21,33 @@
 	let gestionnaires = $state<Gestionnaire[]>([]);
 	let abortController: AbortController | null = null;
 
+	async function loadGestionnaires() {
+		abortController?.abort();
+		abortController = new AbortController();
+		isLoading = true;
+		try {
+			gestionnaires = await gestionnaireHelpers.getByAgency(agencyId);
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'AbortError') return;
+			console.error('[ProfileSwitcher] Failed to load profiles:', error);
+			addToast({ message: 'Erreur chargement des profils', type: 'error' });
+		} finally {
+			isLoading = false;
+		}
+	}
+
 	async function toggleMenu() {
 		if (isOpen) {
 			isOpen = false;
 			return;
 		}
 		if (isSwitching || isLoading) return;
-
-		// Cancel any previous fetch request
-		abortController?.abort();
-		abortController = new AbortController();
-
-		isLoading = true;
 		isOpen = true;
-		try {
-			gestionnaires = await gestionnaireHelpers.getByAgency(agencyId);
-		} catch (error) {
-			// Ignore abort errors (expected when user rapidly opens/closes)
-			if (error instanceof DOMException && error.name === 'AbortError') {
-				return;
-			}
-			console.error('[ProfileSwitcher] Failed to load profiles:', error);
-			addToast({ message: 'Erreur chargement des profils', type: 'error' });
-			isOpen = false;
-			return;
-		} finally {
-			isLoading = false;
-		}
+		await loadGestionnaires();
 	}
 
 	async function switchProfile(gestionnaire: Gestionnaire) {
-		if (gestionnaire.id === currentUser.id) {
+		if (gestionnaire.id === currentUser?.id) {
 			isOpen = false;
 			return;
 		}
@@ -95,8 +91,13 @@
 		aria-expanded={isOpen}
 		aria-haspopup="listbox"
 	>
-		<Avatar gestionnaire={currentUser} size="sm" />
-		<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{currentUser.firstName}</span>
+		{#if currentUser}
+			<Avatar gestionnaire={currentUser} size="sm" />
+			<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{currentUser.firstName}</span>
+		{:else}
+			<div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400">?</div>
+			<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Sélectionner un profil</span>
+		{/if}
 		<svg
 			class="h-4 w-4 text-gray-400 transition-transform {isOpen ? 'rotate-180' : ''}"
 			fill="none"
@@ -130,10 +131,10 @@
 						onclick={() => switchProfile(gestionnaire)}
 						disabled={isSwitching !== null}
 						class="flex w-full items-center gap-3 px-4 py-2 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700
-								{gestionnaire.id === currentUser.id ? 'bg-red-50 dark:bg-red-950' : ''}
+								{gestionnaire.id === currentUser?.id ? 'bg-red-50 dark:bg-red-950' : ''}
 								disabled:cursor-not-allowed disabled:opacity-50"
 						role="option"
-						aria-selected={gestionnaire.id === currentUser.id}
+						aria-selected={gestionnaire.id === currentUser?.id}
 					>
 						<Avatar {gestionnaire} size="sm" />
 						<div class="min-w-0 flex-1">
@@ -142,7 +143,7 @@
 								{gestionnaire.lastName}
 							</p>
 						</div>
-						{#if gestionnaire.id === currentUser.id}
+						{#if gestionnaire.id === currentUser?.id}
 							<svg
 								class="h-4 w-4 text-[var(--color-orpi-red)]"
 								fill="currentColor"

@@ -3,50 +3,40 @@ setlocal
 
 :: ============================================================
 :: Orpi PropGen -- Lanceur application
-:: Ouvre PropGen dans Chrome ou Edge en mode application
+:: Demarre un serveur local et ouvre l'app dans le navigateur
 :: ============================================================
 
 set "APPDIR=%~dp0app"
-set "INDEX=%APPDIR%\index.html"
+set "PORT=8491"
+set "URL=http://localhost:%PORT%"
 
 :: Verifier que l'application est presente
-if not exist "%INDEX%" (
+if not exist "%APPDIR%\index.html" (
     echo ERREUR: L'application n'est pas installee correctement.
-    echo Fichier manquant: %INDEX%
+    echo Fichier manquant: %APPDIR%\index.html
     echo Veuillez reinstaller Orpi PropGen.
     pause
     exit /b 1
 )
 
-:: Convertir en URL file://
-set "APP_URL=%INDEX:\=/%"
-
-:: Essayer Chrome d'abord, puis Edge
-where chrome >nul 2>nul
+:: Verifier si le port est deja utilise (instance deja lancee)
+netstat -ano | findstr ":%PORT% " | findstr "LISTENING" >nul 2>nul
 if %errorlevel% equ 0 (
-    start "" "chrome" --app="file:///%APP_URL%" --disable-web-security --allow-file-access-from-files
-    goto :end
+    echo Orpi PropGen est deja lance.
+    start "" "%URL%"
+    exit /b 0
 )
 
-:: Essayer Edge
-where msedge >nul 2>nul
-if %errorlevel% equ 0 (
-    start "" "msedge" --app="file:///%APP_URL%" --disable-web-security --allow-file-access-from-files
-    goto :end
-)
+:: Demarrer le serveur en arriere-plan
+start "OrpiPropGenServer" /min powershell -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0serve.ps1" %PORT% "%APPDIR%"
 
-:: Essayer le chemin complet Edge (pas toujours dans PATH)
-set "EDGE_PATH=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
-if exist "%EDGE_PATH%" (
-    start "" "%EDGE_PATH%" --app="file:///%APP_URL%" --disable-web-security --allow-file-access-from-files
-    goto :end
-)
+:: Attendre que le serveur soit pret
+:wait_server
+timeout /t 1 /nobreak >nul
+netstat -ano | findstr ":%PORT% " | findstr "LISTENING" >nul 2>nul
+if %errorlevel% neq 0 goto :wait_server
 
-:: Aucun navigateur compatible
-echo ERREUR: Aucun navigateur compatible trouve.
-echo Installez Chrome ou Edge pour utiliser Orpi PropGen.
-pause
-exit /b 1
+:: Ouvrir dans le navigateur par defaut
+start "" "%URL%"
 
-:end
 endlocal

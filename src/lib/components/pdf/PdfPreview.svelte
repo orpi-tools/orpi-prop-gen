@@ -82,27 +82,43 @@
 	type DynamicPage = { type: 'dynamic'; component: 'Page03Bien' | 'Page04Agence' | 'Page05Location' | 'Page06Simulation' };
 	type PageDef = FixedPage | DynamicPage;
 
+	// Chemins des pages 7/9/10 spécifiques à l'agence active, avec fallback legacy
+	let agencyId = $derived($agencyStore?.id ?? '');
+	let page07Src = $derived(
+		agencyId
+			? `/pdf/agencies/${agencyId}/page-07-interlocutrices.jpg`
+			: '/pdf/page-07-interlocutrices.jpg'
+	);
+	let page09Src = $derived(
+		agencyId ? `/pdf/agencies/${agencyId}/page-09-bareme.jpg` : '/pdf/page-09-bareme.jpg'
+	);
+	let page10Src = $derived(
+		agencyId
+			? `/pdf/agencies/${agencyId}/page-10-bareme-gestion.jpg`
+			: '/pdf/page-10-bareme-gestion.jpg'
+	);
+
 	// pages.length utilisé comme TOTAL_PAGES (évite la redondance)
-	const pages: PageDef[] = [
+	let pages = $derived<PageDef[]>([
 		{ type: 'fixed', src: '/pdf/page-01-cover.jpg', alt: 'Couverture' },
 		{ type: 'fixed', src: '/pdf/page-02-accroche.jpg', alt: 'Accroche — Gérer un bien' },
 		{ type: 'dynamic', component: 'Page03Bien' },
 		{ type: 'dynamic', component: 'Page04Agence' },
 		{ type: 'dynamic', component: 'Page05Location' },
 		{ type: 'dynamic', component: 'Page06Simulation' },
-		{ type: 'fixed', src: '/pdf/page-07-interlocutrices.jpg', alt: 'Vos interlocutrices privilégiées' },
+		{ type: 'fixed', src: page07Src, alt: 'Vos interlocutrices privilégiées' },
 		{ type: 'fixed', src: '/pdf/page-08-gli.jpg', alt: 'Garantie Loyers Impayés' },
-		{ type: 'fixed', src: '/pdf/page-09-bareme.jpg', alt: 'Barème de transaction' },
-		{ type: 'fixed', src: '/pdf/page-10-bareme-gestion.jpg', alt: 'Barème de gestion' },
+		{ type: 'fixed', src: page09Src, alt: 'Barème de transaction' },
+		{ type: 'fixed', src: page10Src, alt: 'Barème de gestion' },
 		{ type: 'fixed', src: '/pdf/page-11-closing.jpg', alt: 'Conclusion' }
-	];
+	]);
 
 	// ─── Zoom ──────────────────────────────────────────────────────────────
 	let zoom = $state(100);
 
 	// ─── Scroll sync ───────────────────────────────────────────────────────
 	const stepToPage: Record<number, number> = { 1: 0, 2: 5, 3: 7 };
-	let pageRefs: (HTMLDivElement | undefined)[] = $state(Array(pages.length));
+	let pageRefs: (HTMLDivElement | undefined)[] = $state(Array(11));
 
 	$effect(() => {
 		const targetPage = stepToPage[currentStep];

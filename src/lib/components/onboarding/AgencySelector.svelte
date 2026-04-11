@@ -6,7 +6,7 @@
 		$props();
 </script>
 
-<div class="mx-auto grid max-w-2xl grid-cols-2 gap-6">
+<div class="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
 	{#each agencies as agency (agency.id)}
 		<button
 			class="agency-card flex cursor-pointer flex-col items-center gap-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-colors duration-150 hover:border-[var(--color-orpi-red)] hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"

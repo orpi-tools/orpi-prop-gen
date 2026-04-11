@@ -1,21 +1,41 @@
 [
 	{
-		"id": "agence-orpi-paris-bastille",
-		"name": "Orpi Paris Bastille",
-		"address": "12 Boulevard Beaumarchais, 75011 Paris",
-		"phone": "01 43 57 00 00",
-		"email": "paris.bastille@orpi.fr",
-		"logoFilename": "orpi-paris-bastille.png",
+		"id": "brousse",
+		"name": "Orpi Brousse Immobilier",
+		"address": "39 Avenue de Paris, 19100 Brive-la-Gaillarde",
+		"phone": "05 55 17 73 80",
+		"email": "brousseimmobilier@orpi.com",
+		"logoFilename": "orpi-logo.png",
 		"tauxGestion": 7.8,
 		"tauxGLI": 3.0
 	},
 	{
-		"id": "agence-orpi-lyon-confluence",
-		"name": "Orpi Lyon Confluence",
-		"address": "8 Rue de la Confluence, 69002 Lyon",
-		"phone": "04 72 00 00 00",
-		"email": "lyon.confluence@orpi.fr",
-		"logoFilename": "orpi-lyon-confluence.png",
+		"id": "brive-rd",
+		"name": "Orpi Brive Immobilier RD",
+		"address": "36 Avenue de Paris, 19100 Brive-la-Gaillarde",
+		"phone": "05 55 23 77 42",
+		"email": "orpi.brivecentre@orpi.com",
+		"logoFilename": "orpi-logo.png",
+		"tauxGestion": 7.8,
+		"tauxGLI": 3.0
+	},
+	{
+		"id": "perigueux",
+		"name": "Orpi Espace Immobilier Périgueux",
+		"address": "7 Cours Saint-Georges, 24000 Périgueux",
+		"phone": "05 53 46 53 53",
+		"email": "",
+		"logoFilename": "orpi-logo.png",
+		"tauxGestion": 7.8,
+		"tauxGLI": 3.0
+	},
+	{
+		"id": "terrasson",
+		"name": "Orpi Patrimoine Immobilier",
+		"address": "29 Avenue Jean Jaurès, 24120 Terrasson-Lavilledieu",
+		"phone": "05 53 50 04 31",
+		"email": "",
+		"logoFilename": "orpi-logo.png",
 		"tauxGestion": 7.8,
 		"tauxGLI": 3.0
 	}

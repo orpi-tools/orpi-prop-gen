@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import { get } from 'svelte/store';
 import { uiStore, addToast } from '$lib/stores/uiStore';
 import { proposalStore } from '$lib/stores/proposalStore';
+import { agencyStore } from '$lib/stores/agencyStore';
 import { propositionHelpers } from '$lib/db/helpers/propositionHelpers';
 import { PropositionStatus } from '$lib/types';
 import { buildPdfData } from './pdfDataMapper';
@@ -16,19 +17,55 @@ const CAPTURE_SCALE = 2;
 const JPEG_QUALITY = 0.95;
 
 /**
- * Static page image paths (served from /static/pdf/).
- * Keys are 0-based array indices → map to 1-based page numbers in final PDF.
- * Example: index 0 → Page 1 (Cover), index 6 → Page 7 (Interlocutrices)
+ * Pages statiques communes à toutes les agences (chemin sous /static/pdf/).
+ * Clés = indices 0-based → 1-based dans le PDF final.
  */
-const STATIC_PAGES: Record<number, string> = {
-	0: '/pdf/page-01-cover.jpg',           // Page 1 (Cover)
-	1: '/pdf/page-02-accroche.jpg',        // Page 2 (Accroche)
-	6: '/pdf/page-07-interlocutrices.jpg', // Page 7 (Interlocutrices)
-	7: '/pdf/page-08-gli.jpg',             // Page 8 (GLI)
-	8: '/pdf/page-09-bareme.jpg',          // Page 9 (Barème transaction)
-	9: '/pdf/page-10-bareme-gestion.jpg',  // Page 10 (Barème gestion)
-	10: '/pdf/page-11-closing.jpg'         // Page 11 (Closing)
+const SHARED_STATIC_PAGES: Record<number, string> = {
+	0: '/pdf/page-01-cover.jpg',          // Page 1 (Cover)
+	1: '/pdf/page-02-accroche.jpg',       // Page 2 (Accroche)
+	7: '/pdf/page-08-gli.jpg',            // Page 8 (GLI)
+	10: '/pdf/page-11-closing.jpg'        // Page 11 (Closing)
 };
+
+/**
+ * Pages statiques spécifiques à chaque agence.
+ * Résolues à `/pdf/agencies/<agencyId>/<filename>`.
+ * Si le fichier de l'agence est introuvable, fallback vers `/pdf/<filename>` (legacy).
+ */
+const PER_AGENCY_STATIC_PAGES: Record<number, string> = {
+	6: 'page-07-interlocutrices.jpg', // Page 7
+	8: 'page-09-bareme.jpg',          // Page 9
+	9: 'page-10-bareme-gestion.jpg'   // Page 10
+};
+
+/**
+ * Indique si un index correspond à une page statique (partagée OU par-agence).
+ */
+function isStaticPage(index: number): boolean {
+	return index in SHARED_STATIC_PAGES || index in PER_AGENCY_STATIC_PAGES;
+}
+
+/**
+ * Résout le chemin de la page statique en fonction de l'agence active.
+ * Pour les pages par-agence, renvoie [chemin agence, chemin fallback partagé].
+ */
+function resolveStaticPagePaths(index: number): string[] {
+	if (index in SHARED_STATIC_PAGES) {
+		return [SHARED_STATIC_PAGES[index]];
+	}
+	if (index in PER_AGENCY_STATIC_PAGES) {
+		const filename = PER_AGENCY_STATIC_PAGES[index];
+		const agency = get(agencyStore);
+		const paths: string[] = [];
+		if (agency?.id) {
+			paths.push(`/pdf/agencies/${agency.id}/${filename}`);
+		}
+		// Fallback : version partagée legacy
+		paths.push(`/pdf/${filename}`);
+		return paths;
+	}
+	return [];
+}
 
 /**
  * Dynamic page indices (0-based array indices).
@@ -146,19 +183,28 @@ export async function generatePdf(pageSelection: boolean[]): Promise<void> {
 			// Skip unchecked pages
 			if (!pageSelection[i]) continue;
 
-			if (STATIC_PAGES[i] !== undefined) {
-				// Fixed page — load static JPEG and add to PDF
-				try {
-					const imgData = await loadImage(STATIC_PAGES[i]);
-					if (isFirstPageAdded) {
-						doc.addPage();
+			if (isStaticPage(i)) {
+				// Page statique — essayer chaque chemin candidat dans l'ordre (agence → fallback)
+				const candidates = resolveStaticPagePaths(i);
+				let imgData: string | null = null;
+				let lastError: unknown = null;
+				for (const path of candidates) {
+					try {
+						imgData = await loadImage(path, 0); // 0 retry → on tente le suivant rapidement
+						break;
+					} catch (err) {
+						lastError = err;
 					}
-					doc.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
-					isFirstPageAdded = true;
-				} catch (error) {
-					const errorMsg = error instanceof Error ? error.message : String(error);
+				}
+				if (!imgData) {
+					const errorMsg = lastError instanceof Error ? lastError.message : String(lastError);
 					throw new Error(`Impossible de charger page ${i + 1} (fichier statique): ${errorMsg}`);
 				}
+				if (isFirstPageAdded) {
+					doc.addPage();
+				}
+				doc.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+				isFirstPageAdded = true;
 			} else if (DYNAMIC_PAGE_INDICES.has(i)) {
 				// Dynamic page — capture from DOM via html2canvas
 				const element = dynamicElements.get(i);

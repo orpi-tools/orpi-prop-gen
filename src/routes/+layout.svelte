@@ -1,10 +1,11 @@
 <script lang="ts">
 	import '../app.css';
 	import { uiStore, toggleDarkMode, initDarkMode } from '$lib/stores/uiStore';
-	import { agencyStore } from '$lib/stores/agencyStore';
-	import { userStore } from '$lib/stores/userStore';
+	import { agencyStore, getPersistedAgencyId } from '$lib/stores/agencyStore';
+	import { userStore, getPersistedGestionnaireId } from '$lib/stores/userStore';
 	import { agencyHelpers } from '$lib/db/helpers/agencyHelpers';
 	import { gestionnaireHelpers } from '$lib/db/helpers/gestionnaireHelpers';
+	import { seedAgencies } from '$lib/db/seedAgencies';
 	import { onMount } from 'svelte';
 	import ToastContainer from '$lib/components/shared/ToastContainer.svelte';
 	import ProfileSwitcher from '$lib/components/shared/ProfileSwitcher.svelte';
@@ -44,27 +45,51 @@
 	onMount(async () => {
 		initDarkMode();
 		try {
-			const agencies = await agencyHelpers.getAll();
-			if (agencies.length > 0) {
-				agencyStore.set(agencies[0]);
-				const gestionnaires = await gestionnaireHelpers.getByAgency(agencies[0].id);
-				if (gestionnaires.length > 0) {
-					userStore.set(gestionnaires[0]);
-				}
-			} else {
-				const currentPath = page.url.pathname;
+			// 1) Seed des 4 agences (idempotent, ne touche pas aux modifs utilisateur)
+			await seedAgencies();
+
+			// 2) Hydrate l'agence active UNIQUEMENT si elle a déjà été choisie
+			//    (via localStorage). Sinon → onboarding pour forcer le choix.
+			const persistedAgencyId = getPersistedAgencyId();
+			const currentPath = page.url.pathname;
+
+			if (!persistedAgencyId) {
 				if (currentPath !== '/onboarding') {
-					try {
-						// eslint-disable-next-line svelte/no-navigation-without-resolve
-						await goto('/onboarding');
-					} catch (navError) {
-						console.error('[Layout] Navigation to onboarding failed:', navError);
-						initError = navError instanceof Error ? navError : new Error('Navigation failed');
-					}
+					// eslint-disable-next-line svelte/no-navigation-without-resolve
+					await goto('/onboarding');
+				}
+				return;
+			}
+
+			const activeAgency = await agencyHelpers.getById(persistedAgencyId);
+			if (!activeAgency) {
+				// Agence persistée introuvable → reset + onboarding
+				if (currentPath !== '/onboarding') {
+					// eslint-disable-next-line svelte/no-navigation-without-resolve
+					await goto('/onboarding');
+				}
+				return;
+			}
+			agencyStore.set(activeAgency);
+
+			// 3) Hydrate le gestionnaire actif (filtré sur l'agence active)
+			const gestionnaires = await gestionnaireHelpers.getByAgency(activeAgency.id);
+			const persistedUserId = getPersistedGestionnaireId();
+			const activeUser =
+				gestionnaires.find((g) => g.id === persistedUserId) ?? gestionnaires[0] ?? null;
+
+			if (activeUser) {
+				userStore.set(activeUser);
+			} else {
+				// Pas de gestionnaire pour cette agence → onboarding (étape profil)
+				userStore.set(null);
+				if (currentPath !== '/onboarding' && currentPath !== '/settings') {
+					// eslint-disable-next-line svelte/no-navigation-without-resolve
+					await goto('/onboarding');
 				}
 			}
 		} catch (error) {
-			console.error('[Layout] Failed to load agencies:', error);
+			console.error('[Layout] Init failed:', error);
 			initError = error instanceof Error ? error : new Error('Failed to load initial data');
 		} finally {
 			mounted = true;
@@ -86,7 +111,7 @@
 		<div class="flex-1"></div>
 
 		<!-- Badge gestionnaire + switch profil -->
-		{#if $userStore && $agencyStore}
+		{#if $agencyStore}
 			<div class="mr-4">
 				<ProfileSwitcher currentUser={$userStore} agencyId={$agencyStore.id} />
 			</div>

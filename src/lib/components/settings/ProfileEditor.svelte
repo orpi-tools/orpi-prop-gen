@@ -57,9 +57,9 @@
 			return;
 		}
 
-		const MAX_SIZE = 5 * 1024 * 1024;
+		const MAX_SIZE = 8 * 1024 * 1024;
 		if (file.size > MAX_SIZE) {
-			addToast({ message: 'Image trop volumineuse (maximum 5 MB)', type: 'error' });
+			addToast({ message: 'Image trop volumineuse (maximum 8 MB)', type: 'error' });
 			input.value = '';
 			return;
 		}
@@ -184,7 +184,7 @@
 
 		<div>
 			<label for="edit-photo" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-				Photo <span class="text-xs text-gray-400">(optionnel, max 5 MB)</span>
+				Photo <span class="text-xs text-gray-400">(optionnel, max 8 MB)</span>
 			</label>
 			<input
 				id="edit-photo"

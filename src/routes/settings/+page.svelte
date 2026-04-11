@@ -5,13 +5,13 @@
 	import Avatar from '$lib/components/shared/Avatar.svelte';
 	import ProfileCreator from '$lib/components/onboarding/ProfileCreator.svelte';
 	import ProfileEditor from '$lib/components/settings/ProfileEditor.svelte';
-	import AgencyCreator from '$lib/components/settings/AgencyCreator.svelte';
+	import UpdateChecker from '$lib/components/settings/UpdateChecker.svelte';
+	import { db } from '$lib/db/dexie';
 	import type { Agency, Gestionnaire } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	let showAddProfile = $state(false);
-	let showAddAgency = $state(false);
 	let editingGestionnaireId = $state<string | null>(null);
 	let allAgencies = $state<Agency[]>([]);
 
@@ -68,8 +68,8 @@
 			addToast({ message: 'Veuillez sélectionner un fichier image', type: 'error' });
 			return;
 		}
-		if (file.size > 5 * 1024 * 1024) {
-			addToast({ message: 'La photo ne doit pas dépasser 5 Mo', type: 'error' });
+		if (file.size > 8 * 1024 * 1024) {
+			addToast({ message: 'La photo ne doit pas dépasser 8 Mo', type: 'error' });
 			return;
 		}
 
@@ -111,34 +111,11 @@
 		}
 	});
 
-	async function handleAgencyCreated(agency: Agency) {
-		if (saveTimeoutId) { clearTimeout(saveTimeoutId); saveTimeoutId = null; }
-		allAgencies = [...allAgencies, agency];
-		showAddAgency = false;
-		// Switch to new agency — clear active user (new agency has no gestionnaires)
-		agencyStore.set(agency);
-		userStore.set(null);
-		name = agency.name;
-		address = agency.address;
-		phone = agency.phone;
-		email = agency.email;
-		tauxGestion = agency.tauxGestion;
-		tauxGLI = agency.tauxGLI;
-		logoFilename = agency.logoFilename;
-		logoUrl = null;
-		photoAgenceUrl = null;
-		gestionnaires = [];
-		isLoadingGestionnaires = false;
-		addToast({ message: `Agence "${agency.name}" créée`, type: 'success' });
-	}
-
 	async function switchAgency(agency: Agency) {
 		if (saveTimeoutId) { clearTimeout(saveTimeoutId); saveTimeoutId = null; }
 		showAddProfile = false;
-		showAddAgency = false;
 		editingGestionnaireId = null;
 		agencyStore.set(agency);
-		userStore.set(null);
 		name = agency.name;
 		address = agency.address;
 		phone = agency.phone;
@@ -153,7 +130,64 @@
 			console.error('[Settings] Failed to load gestionnaires:', error);
 			gestionnaires = [];
 		}
+
+		// Auto-sélection : 1er gestionnaire de la nouvelle agence (sinon null)
+		userStore.set(gestionnaires[0] ?? null);
+
 		addToast({ message: `Agence "${agency.name}" sélectionnée`, type: 'success' });
+	}
+
+	function selectGestionnaire(gestionnaire: Gestionnaire) {
+		userStore.set(gestionnaire);
+		addToast({
+			message: `Profil ${gestionnaire.firstName} sélectionné`,
+			type: 'success'
+		});
+	}
+
+	let isResetting = $state(false);
+
+	async function handleResetApp() {
+		const confirmed = window.confirm(
+			'⚠️ Réinitialiser l\'application ?\n\n' +
+				'Cette action va supprimer DÉFINITIVEMENT :\n' +
+				'• Toutes les agences et leurs modifications\n' +
+				'• Tous les profils gestionnaires\n' +
+				'• Toutes les propositions et photos\n' +
+				'• Tous les paramètres locaux\n\n' +
+				'L\'application redémarrera comme à la première installation.\n\n' +
+				'Confirmer ?'
+		);
+		if (!confirmed) return;
+
+		isResetting = true;
+		try {
+			// Vider toutes les tables Dexie
+			await db.transaction(
+				'rw',
+				db.agencies,
+				db.gestionnaires,
+				db.propositions,
+				db.photos,
+				async () => {
+					await db.photos.clear();
+					await db.propositions.clear();
+					await db.gestionnaires.clear();
+					await db.agencies.clear();
+				}
+			);
+			// Vider localStorage
+			localStorage.clear();
+			// Reset les stores en mémoire
+			agencyStore.set(null);
+			userStore.set(null);
+			// Recharger l'app pour relancer le seed et l'onboarding
+			location.reload();
+		} catch (error) {
+			console.error('[Settings] Reset failed:', error);
+			addToast({ message: 'Erreur lors de la réinitialisation', type: 'error' });
+			isResetting = false;
+		}
 	}
 
 	function handleGestionnaireUpdated(updated: Gestionnaire) {
@@ -218,81 +252,48 @@
 	</div>
 
 	<!-- Section: Agences -->
-	{#if allAgencies.length > 1}
-		<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Agences</h2>
-				{#if !showAddAgency}
-					<button
-						onclick={() => (showAddAgency = true)}
-						class="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-					>
-						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-						</svg>
-						Ajouter une agence
-					</button>
-				{/if}
-			</div>
+	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+		<div class="mb-4">
+			<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Agences</h2>
+			<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+				Cliquez sur une agence pour la sélectionner. Modifiez ses informations dans la section ci-dessous.
+			</p>
+		</div>
 
-			{#if showAddAgency}
-				<div class="mb-4">
-					<AgencyCreator onCreated={handleAgencyCreated} onCancel={() => (showAddAgency = false)} />
-				</div>
-			{/if}
-
-			<div class="space-y-2">
-				{#each allAgencies as agency (agency.id)}
-					<button
-						onclick={() => switchAgency(agency)}
-						class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors {agency.id === $agencyStore?.id
-							? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
-							: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
-					>
-						<img
-							src={agency.logoFilename ? `/logos/${agency.logoFilename}` : '/logos/orpi-logo.png'}
-							alt="Logo {agency.name}"
-							class="h-8 w-8 rounded object-contain"
-						/>
-						<div class="min-w-0 flex-1">
-							<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
-								{agency.name}
-								{#if agency.id === $agencyStore?.id}
-									<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(active)</span>
-								{/if}
-							</p>
-							{#if agency.address}
-								<p class="truncate text-xs text-gray-500 dark:text-gray-400">{agency.address}</p>
+		<div class="space-y-2">
+			{#each allAgencies as agency (agency.id)}
+				<button
+					onclick={() => switchAgency(agency)}
+					class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors {agency.id === $agencyStore?.id
+						? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
+						: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
+				>
+					<img
+						src={agency.logoFilename ? `/logos/${agency.logoFilename}` : '/logos/orpi-logo.png'}
+						alt="Logo {agency.name}"
+						class="h-8 w-8 rounded object-contain"
+					/>
+					<div class="min-w-0 flex-1">
+						<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+							{agency.name}
+							{#if agency.id === $agencyStore?.id}
+								<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(active)</span>
 							{/if}
-						</div>
-					</button>
-				{/each}
-			</div>
-		</section>
-	{/if}
+						</p>
+						{#if agency.address}
+							<p class="truncate text-xs text-gray-500 dark:text-gray-400">{agency.address}</p>
+						{/if}
+					</div>
+				</button>
+			{/each}
+		</div>
+	</section>
 
 	<!-- Section: Informations agence -->
 	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-		<div class="mb-4 flex items-center justify-between">
+		<div class="mb-4">
 			<h2 class="text-lg font-semibold text-gray-900 dark:text-gray-50">Informations agence</h2>
-			{#if allAgencies.length <= 1 && !showAddAgency}
-				<button
-					onclick={() => (showAddAgency = true)}
-					class="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-				>
-					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-					</svg>
-					Ajouter une agence
-				</button>
-			{/if}
 		</div>
-
-		{#if showAddAgency && allAgencies.length <= 1}
-			<div class="mb-6">
-				<AgencyCreator onCreated={handleAgencyCreated} onCancel={() => (showAddAgency = false)} />
-			</div>
-		{/if}
 
 		<!-- Logo display -->
 		<div class="mb-6 flex items-center gap-4">
@@ -510,32 +511,39 @@
 						/>
 					{:else}
 						<div
-							class="flex items-center gap-4 rounded-lg px-4 py-3 transition-colors {gestionnaire.id ===
+							class="flex items-center gap-2 rounded-lg transition-colors {gestionnaire.id ===
 							$userStore?.id
 								? 'border-l-4 border-[var(--color-orpi-red)] bg-red-50 dark:bg-red-950'
 								: 'border-l-4 border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}"
 						>
-							<Avatar {gestionnaire} size="sm" />
-							<div class="min-w-0 flex-1">
-								<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
-									{gestionnaire.firstName}
-									{gestionnaire.lastName}
-									{#if gestionnaire.id === $userStore?.id}
-										<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(actif)</span>
-									{/if}
-								</p>
-								<div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-									{#if gestionnaire.email}
-										<span>{gestionnaire.email}</span>
-									{/if}
-									{#if gestionnaire.phone}
-										<span>{gestionnaire.phone}</span>
-									{/if}
+							<button
+								type="button"
+								onclick={() => selectGestionnaire(gestionnaire)}
+								class="flex flex-1 items-center gap-4 px-4 py-3 text-left"
+								title="Sélectionner ce profil"
+							>
+								<Avatar {gestionnaire} size="sm" />
+								<div class="min-w-0 flex-1">
+									<p class="truncate text-sm font-medium text-gray-900 dark:text-gray-50">
+										{gestionnaire.firstName}
+										{gestionnaire.lastName}
+										{#if gestionnaire.id === $userStore?.id}
+											<span class="ml-1 text-xs text-[var(--color-orpi-red)]">(actif)</span>
+										{/if}
+									</p>
+									<div class="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
+										{#if gestionnaire.email}
+											<span>{gestionnaire.email}</span>
+										{/if}
+										{#if gestionnaire.phone}
+											<span>{gestionnaire.phone}</span>
+										{/if}
+									</div>
 								</div>
-							</div>
+							</button>
 							<button
 								onclick={() => (editingGestionnaireId = gestionnaire.id)}
-								class="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+								class="mr-2 shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
 								title="Modifier le profil"
 							>
 								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -547,5 +555,24 @@
 				{/each}
 			</div>
 		{/if}
+	</section>
+
+	<!-- Section: Mise à jour (uniquement visible dans Electron) -->
+	<UpdateChecker />
+
+	<!-- Section: Zone de danger -->
+	<section class="rounded-xl border border-red-300 bg-red-50 p-6 shadow-sm dark:border-red-900 dark:bg-red-950/30">
+		<h2 class="mb-1 text-lg font-semibold text-red-900 dark:text-red-200">Zone de danger</h2>
+		<p class="mb-4 text-xs text-red-700 dark:text-red-300">
+			Réinitialise complètement l'application : supprime toutes les agences, profils, propositions et
+			photos enregistrées localement. L'application redémarrera comme à la première installation.
+		</p>
+		<button
+			onclick={handleResetApp}
+			disabled={isResetting}
+			class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			{isResetting ? 'Réinitialisation…' : 'Réinitialiser l\'application'}
+		</button>
 	</section>
 </div>

@@ -1,8 +1,11 @@
 {
 	"name": "orpi-prop-gen",
 	"private": true,
-	"version": "0.0.1",
+	"version": "1.1.1",
+	"description": "Orpi PropGen — Générateur de propositions locatives",
+	"author": "Orpi",
 	"type": "module",
+	"main": "electron/main.cjs",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -14,7 +17,12 @@
 		"format": "prettier --write .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
-		"installer": "cd installer && build-installer.bat"
+		"electron:start": "electron .",
+		"dist": "npm run build && electron-builder",
+		"dist:win": "npm run build && electron-builder --win",
+		"dist:mac": "npm run build && electron-builder --mac",
+		"dist:all": "npm run build && electron-builder -mw",
+		"release": "npm run build && electron-builder --publish always"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.3",
@@ -24,6 +32,8 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/node": "^24",
+		"electron": "^41.2.0",
+		"electron-builder": "^26.8.1",
 		"eslint": "^10.0.3",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.15.2",
@@ -43,7 +53,63 @@
 	},
 	"dependencies": {
 		"dexie": "^4.4.2",
+		"electron-log": "^5.4.3",
+		"electron-updater": "^6.8.3",
 		"html2canvas": "^1.4.1",
 		"jspdf": "^4.2.1"
+	},
+	"build": {
+		"appId": "com.orpi.propgen",
+		"productName": "Orpi PropGen",
+		"copyright": "Copyright © 2026 Orpi",
+		"directories": {
+			"buildResources": "installer",
+			"output": "dist"
+		},
+		"files": [
+			"electron/**/*",
+			"build/**/*",
+			"package.json",
+			"!**/*.map",
+			"!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+		],
+		"publish": [
+			{
+				"provider": "github",
+				"owner": "morganmargerit19",
+				"repo": "orpi-prop-gen-releases",
+				"releaseType": "release"
+			}
+		],
+		"win": {
+			"target": [
+				{
+					"target": "nsis",
+					"arch": ["x64"]
+				}
+			],
+			"artifactName": "OrpiPropGen-Setup-${version}.${ext}"
+		},
+		"nsis": {
+			"oneClick": false,
+			"perMachine": false,
+			"allowToChangeInstallationDirectory": true,
+			"createDesktopShortcut": true,
+			"createStartMenuShortcut": true,
+			"shortcutName": "Orpi PropGen"
+		},
+		"mac": {
+			"target": [
+				{
+					"target": "dmg",
+					"arch": ["x64", "arm64"]
+				}
+			],
+			"category": "public.app-category.productivity",
+			"artifactName": "OrpiPropGen-${version}-${arch}.${ext}"
+		},
+		"dmg": {
+			"title": "Orpi PropGen ${version}"
+		}
 	}
 }

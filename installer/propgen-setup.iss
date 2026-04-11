@@ -39,13 +39,14 @@ UninstallDisplayName={#MyAppName}
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Creer un raccourci sur le Bureau"; GroupDescription: "Raccourcis:"; Flags: checked
+Name: "desktopicon"; Description: "Creer un raccourci sur le Bureau"; GroupDescription: "Raccourcis:"
 
 [Files]
 ; Application web (contenu du dossier build/)
 Source: "..\build\*"; DestDir: "{app}\app"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Lanceur
+; Lanceur + serveur local
 Source: "launch-propgen.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "serve.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Menu Demarrer
