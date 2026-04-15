@@ -1,7 +1,7 @@
 # Publication des releases Orpi PropGen
 
 Le logiciel utilise **electron-updater** pour se mettre à jour automatiquement depuis le dépôt GitHub
-`morganmargerit19/orpi-prop-gen-releases`.
+`orpi-tools/orpi-prop-gen-releases`.
 
 ## Workflow de release
 
@@ -25,7 +25,7 @@ npm run dist:mac
 
 ### 3. Publier sur GitHub
 
-Créer un **tag** puis une **release** dans [morganmargerit19/orpi-prop-gen-releases](https://github.com/morganmargerit19/orpi-prop-gen-releases)
+Créer un **tag** puis une **release** dans [orpi-tools/orpi-prop-gen-releases](https://github.com/orpi-tools/orpi-prop-gen-releases)
 avec les fichiers suivants joints :
 
 - `OrpiPropGen-Setup-<version>.exe` (Windows)
@@ -65,7 +65,7 @@ pour rester conforme aux exigences RGPD.
 
 - Aucune donnée utilisateur (agences, gestionnaires, propositions, photos) ne quitte le poste.
 - Les seules requêtes réseau possibles sont :
-  - `GET github.com/morganmargerit19/orpi-prop-gen-releases/releases/latest` (sur clic)
+  - `GET github.com/orpi-tools/orpi-prop-gen-releases/releases/latest` (sur clic)
   - Téléchargement du binaire de mise à jour (sur clic)
 - Aucune télémétrie, aucun analytics, aucun tracking.
 

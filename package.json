@@ -1,7 +1,7 @@
 {
 	"name": "orpi-prop-gen",
 	"private": true,
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Orpi PropGen — Générateur de propositions locatives",
 	"author": "Orpi",
 	"type": "module",
@@ -76,7 +76,7 @@
 		"publish": [
 			{
 				"provider": "github",
-				"owner": "morganmargerit19",
+				"owner": "orpi-tools",
 				"repo": "orpi-prop-gen-releases",
 				"releaseType": "release"
 			}
