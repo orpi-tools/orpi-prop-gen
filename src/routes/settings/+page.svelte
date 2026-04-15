@@ -6,6 +6,7 @@
 	import ProfileCreator from '$lib/components/onboarding/ProfileCreator.svelte';
 	import ProfileEditor from '$lib/components/settings/ProfileEditor.svelte';
 	import UpdateChecker from '$lib/components/settings/UpdateChecker.svelte';
+	import ConfirmModal from '$lib/components/common/ConfirmModal.svelte';
 	import { db } from '$lib/db/dexie';
 	import type { Agency, Gestionnaire } from '$lib/types';
 	import { onMount, onDestroy } from 'svelte';
@@ -187,6 +188,35 @@
 			console.error('[Settings] Reset failed:', error);
 			addToast({ message: 'Erreur lors de la réinitialisation', type: 'error' });
 			isResetting = false;
+		}
+	}
+
+	let deleteTarget = $state<Gestionnaire | null>(null);
+
+	function requestDeleteGestionnaire(gestionnaire: Gestionnaire) {
+		deleteTarget = gestionnaire;
+	}
+
+	async function confirmDeleteGestionnaire() {
+		const target = deleteTarget;
+		if (!target) return;
+		deleteTarget = null;
+		try {
+			await gestionnaireHelpers.delete(target.id);
+			gestionnaires = gestionnaires.filter((g) => g.id !== target.id);
+			if ($userStore?.id === target.id) {
+				userStore.set(gestionnaires[0] ?? null);
+			}
+			if (editingGestionnaireId === target.id) {
+				editingGestionnaireId = null;
+			}
+			addToast({
+				message: `Profil ${target.firstName} ${target.lastName} supprimé`,
+				type: 'success'
+			});
+		} catch (error) {
+			console.error('[Settings] Delete gestionnaire failed:', error);
+			addToast({ message: 'Erreur lors de la suppression du profil', type: 'error' });
 		}
 	}
 
@@ -543,11 +573,21 @@
 							</button>
 							<button
 								onclick={() => (editingGestionnaireId = gestionnaire.id)}
-								class="mr-2 shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+								class="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-600 dark:hover:text-gray-300"
 								title="Modifier le profil"
 							>
 								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+								</svg>
+							</button>
+							<button
+								type="button"
+								onclick={() => requestDeleteGestionnaire(gestionnaire)}
+								class="mr-2 shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+								title="Supprimer le profil"
+							>
+								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
 								</svg>
 							</button>
 						</div>
@@ -576,3 +616,14 @@
 		</button>
 	</section>
 </div>
+
+<ConfirmModal
+	open={deleteTarget !== null}
+	title="Supprimer le profil"
+	message={deleteTarget
+		? `Supprimer ${deleteTarget.firstName} ${deleteTarget.lastName} ? Toutes ses propositions et photos seront également supprimées. Cette action est irréversible.`
+		: ''}
+	confirmText="Supprimer"
+	onConfirm={confirmDeleteGestionnaire}
+	onCancel={() => (deleteTarget = null)}
+/>
